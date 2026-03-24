@@ -51,5 +51,23 @@ npm run build
 ```
 The optimized static files will be generated in the `dist/` directory.
 
+## 🧠 AI Waste Classifier (The "Massive" Model)
+
+The core feature of this platform is a **custom-trained EfficientNetV2-S** deep learning model that performs real-time waste classification directly in the browser.
+
+### 📊 Dataset Details
+The model was trained on a massive merged dataset of **~70,000 images** from the following 5 verified Kaggle sources:
+1. [Garbage Classification (Mostafa Abla)](https://www.kaggle.com/datasets/mostafaabla/garbage-classification)
+2. [TrashNet Standard (asdasdasasdas)](https://www.kaggle.com/datasets/asdasdasasdas/garbage-classification)
+3. [Garbage-Classification-6-classes (quangtheng)](https://www.kaggle.com/datasets/quangtheng/garbage-classification-6-classes-775class)
+4. [Garbage Classification V2 (sumn2u)](https://www.kaggle.com/datasets/sumn2u/garbage-classification-v2)
+5. [Garbage Dataset (zlatan599)](https://www.kaggle.com/datasets/zlatan599/garbage-dataset-classification)
+
+### ⚙️ Training Specs
+- **Architecture**: EfficientNetV2-S (22M parameters)
+- **Framework**: TensorFlow & Keras
+- **Inference**: TensorFlow.js (Offline Browser Inference)
+- **Time**: 6-8 Hours on Google Colab T4 GPU
+
 ---
 *Created and maintained by [om051105](https://github.com/om051105).*
