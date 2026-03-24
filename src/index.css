@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 140 20% 98%;
+    --foreground: 160 30% 8%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 160 30% 8%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 160 30% 8%;
+
+    --primary: 152 60% 36%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 145 30% 94%;
+    --secondary-foreground: 152 60% 26%;
+
+    --muted: 140 15% 94%;
+    --muted-foreground: 160 10% 45%;
+
+    --accent: 85 50% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 140 15% 90%;
+    --input: 140 15% 90%;
+    --ring: 152 60% 36%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 160 30% 8%;
+    --sidebar-foreground: 140 15% 90%;
+    --sidebar-primary: 152 60% 46%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 160 25% 14%;
+    --sidebar-accent-foreground: 140 15% 90%;
+    --sidebar-border: 160 20% 16%;
+    --sidebar-ring: 152 60% 46%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --success: 152 60% 36%;
+    --success-foreground: 0 0% 100%;
+    --info: 210 80% 55%;
+    --info-foreground: 0 0% 100%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(152, 60%, 36%), hsl(85, 50%, 50%));
+    --gradient-dark: linear-gradient(135deg, hsl(160, 30%, 8%), hsl(160, 25%, 14%));
+    --gradient-card: linear-gradient(135deg, hsl(0, 0%, 100%), hsl(140, 20%, 97%));
+
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+
+    --shadow-card: 0 1px 3px hsl(160 30% 8% / 0.04), 0 4px 12px hsl(160 30% 8% / 0.06);
+    --shadow-elevated: 0 4px 16px hsl(160 30% 8% / 0.08), 0 12px 40px hsl(160 30% 8% / 0.1);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  .gradient-dark {
+    background: var(--gradient-dark);
+  }
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
