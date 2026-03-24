@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# 🔒 Private Training & Datasets
+dataset/
+model_output/
+*.keras
+*.h5
+.kaggle/
+kaggle.json
+tfjs_model.zip
+/public/tfjs_model/group1-shard*
+
