@@ -1,0 +1,21 @@
+{
+  "classes": [
+    "GREEN_BIN",
+    "BLUE_BIN",
+    "RED_BIN"
+  ],
+  "input_size": [
+    300,
+    300
+  ],
+  "labels": {
+    "GREEN_BIN": "Green Bin \ud83d\udfe2 (Organic / Biodegradable)",
+    "BLUE_BIN": "Blue Bin \ud83d\udd35 (Recyclable Material)",
+    "RED_BIN": "Red Bin \ud83d\udd34 (Hazardous / General Waste)"
+  },
+  "training": {
+    "architecture": "EfficientNetV2S (22M Params)",
+    "total_images": "~13.5k Cleaned",
+    "datasets": "Merged 5-Source Massive Dataset"
+  }
+}
