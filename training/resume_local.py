@@ -65,8 +65,11 @@ except Exception as e:
     print(f"[ERROR] Could not load Colab weights: {e}")
     print("[INFO] Starting training from scratch (Phase 1) locally.")
 
-# --- 6. START TRAINING ---
-print("\n[STEP] Starting Training on your RTX 3050...")
+# --- 6. START FINE-TUNING (PHASE 2) ---
+print("\n[STEP] PHASE 2: Fine-tuning top 40% of deep layers on your RTX 3050...")
+base.trainable = True
+for layer in base.layers[:int(len(base.layers)*0.60)]: layer.trainable = False
+
 model.compile(optimizer=keras.optimizers.Adam(1e-5), 
               loss="categorical_crossentropy", metrics=["accuracy"])
 
