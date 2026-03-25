@@ -30,5 +30,4 @@ model_output/
 *.h5
 .kaggle/
 kaggle.json
-tfjs_model.zip
 
