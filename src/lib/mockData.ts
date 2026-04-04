@@ -27,10 +27,16 @@ export interface TrainingRecord {
   completedAt?: string;
 }
 
-export interface AIResult {
-  category: string;
+export interface AIItem {
+  name: string;
+  category: 'Green' | 'Blue' | 'Red';
   confidence: number;
-  isCorrectlySegregated: boolean;
+  reason: string;
+}
+
+export interface AIResult {
+  items: AIItem[];
+  final_recommendation: string;
 }
 
 const COMPLAINTS_KEY = 'wastewise_complaints';
@@ -80,12 +86,41 @@ export const mockTrainings: TrainingRecord[] = [
   { id: '3', userId: '2', title: 'Hazardous Waste Handling', completed: false, score: 0 },
 ];
 
+const wasteItems: { name: string; category: 'Green' | 'Blue' | 'Red'; reason: string }[] = [
+  { name: 'Plastic Bottle', category: 'Blue', reason: 'PET plastic is a recyclable material' },
+  { name: 'Banana Peel', category: 'Green', reason: 'Organic biodegradable food waste' },
+  { name: 'Cardboard Box', category: 'Blue', reason: 'Paper and cardboard are recyclable' },
+  { name: 'Dead Leaves', category: 'Green', reason: 'Plant matter is biodegradable' },
+  { name: 'Alkaline Battery', category: 'Red', reason: 'Batteries contain hazardous chemicals' },
+  { name: 'Glass Jar', category: 'Blue', reason: 'Glass is fully recyclable' },
+  { name: 'Food Leftovers', category: 'Green', reason: 'Cooked food waste is biodegradable' },
+  { name: 'Aluminium Can', category: 'Blue', reason: 'Aluminium metal is recyclable' },
+  { name: 'Used Syringe', category: 'Red', reason: 'Medical waste is hazardous and sharps' },
+  { name: 'Paint Can', category: 'Red', reason: 'Contains chemical substances hazardous to environment' },
+  { name: 'Newspaper', category: 'Blue', reason: 'Paper products are recyclable' },
+  { name: 'Coffee Grounds', category: 'Green', reason: 'Organic waste suitable for composting' },
+];
+
 export function simulateAI(): AIResult {
-  const categories = ['organic', 'plastic', 'metal', 'glass', 'hazardous'];
-  const category = categories[Math.floor(Math.random() * categories.length)];
-  const confidence = 70 + Math.floor(Math.random() * 28);
-  const isCorrectlySegregated = Math.random() > 0.35;
-  return { category, confidence, isCorrectlySegregated };
+  const count = Math.random() > 0.5 ? 2 : 1;
+  const shuffled = [...wasteItems].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, count);
+
+  const items: AIItem[] = picked.map(w => ({
+    name: w.name,
+    category: w.category,
+    confidence: 70 + Math.floor(Math.random() * 28),
+    reason: w.reason,
+  }));
+
+  const binLabel = { Green: 'Green Bin 🟢', Blue: 'Blue Bin 🔵', Red: 'Red Bin 🔴' };
+  const uniqueBins = [...new Set(items.map(i => i.category))];
+
+  const recommendation = uniqueBins.length === 1
+    ? `Dispose in ${binLabel[uniqueBins[0]]}`
+    : `Multiple bins required — please separate: ${uniqueBins.map(b => binLabel[b]).join(', ')}`;
+
+  return { items, final_recommendation: recommendation };
 }
 
 export const wasteStats = {
