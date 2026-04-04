@@ -50,7 +50,7 @@ for f_name in os.listdir(TFJS_OUT):
     print(f"   {f_name}  ({mb:.2f} MB)")
 print(f"\n[INFO] Final Model Size: {total_mb:.1f} MB")
 
-# --- ZIP FOR DOWNLOADING ---
+# --- ZIP FOR LOCAL USE ---
 print("\n[STEP] Zipping for download...")
-shutil.make_archive("/content/tfjs_model_massive", "zip", TFJS_OUT)
-print("[SUCCESS] /content/tfjs_model_massive.zip ready for local project use.")
+shutil.make_archive("./tfjs_model_massive", "zip", TFJS_OUT)
+print("[SUCCESS] ./tfjs_model_massive.zip ready for use in your public/ folder.")
