@@ -1,0 +1,59 @@
+Smart Waste Hub - AI Model (Simple Explanation)
+By Om Singh
+
+---
+
+So what did we actually build?
+
+We trained an AI that looks at a photo of waste and tells you which bin to use — Green, Blue, or Red. That's it. Simple idea, but the tech behind it is pretty cool.
+
+---
+
+THE MODEL
+
+We used a model called EfficientNetV2-S, made by Google. It already knew how to recognise objects from 1.2 million images it was trained on before we even touched it. We just taught it the extra step of "okay, now tell me if this goes in the recycle bin or the trash."
+
+It has 22 million internal numbers (called parameters) that it learned during training. Think of them as the model's "memory" for what different waste looks like.
+
+---
+
+THE DATA
+
+We didn't take photos ourselves. We downloaded 5 free datasets from Kaggle — a website where researchers share data. Combined, that's about 70,000 images of garbage.
+
+We grouped everything into 3 categories:
+- Green Bin = food, leaves, organic stuff
+- Blue Bin = plastic, paper, glass, metal
+- Red Bin = batteries, chemicals, stuff that's dangerous
+
+---
+
+HOW WE TRAINED IT
+
+Training happened in 2 steps:
+
+Step 1 — We kept Google's model frozen (untouched) and only trained our small extra layers on top. This took about 15 rounds (epochs). Super fast.
+
+Step 2 — We unfroze part of Google's model and let it slowly adjust to our waste images. Another 30 rounds, but with a much smaller learning rate so it doesn't forget what it already knows.
+
+We trained on an RTX 3050 GPU. It's about 26x faster than using a regular CPU. What would take 3 hours on a CPU took about 7 minutes on the GPU.
+
+---
+
+HOW IT WORKS IN THE BROWSER
+
+After training, we converted the model to a format that runs in Chrome, Firefox, etc. using TensorFlow.js.
+
+When you upload a photo on the website, the model runs entirely on YOUR device. Your image never goes to any server. It's completely private, and it works offline too.
+
+The whole thing takes under a second.
+
+---
+
+ACCURACY
+
+Around 95-99% on our test images. Not perfect, but solid enough that if you hold up a plastic bottle, it's almost certainly going to say "Blue Bin."
+
+---
+
+That's basically it. A photo goes in, a bin recommendation comes out. The hard part was just getting the training right.
