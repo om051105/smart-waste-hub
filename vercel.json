@@ -1,15 +1,14 @@
 {
   "version": 2,
+  "framework": "vite",
   "name": "smart-waste-hub",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/index.js"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!assets/|tfjs_model/|.*\\..*).*)",
       "destination": "/index.html"
     }
   ]
