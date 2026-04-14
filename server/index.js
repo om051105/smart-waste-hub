@@ -52,37 +52,19 @@ let isConnected = false;
 export const connectDB = async () => {
   if (isConnected) return;
   const uri = process.env.MONGO_URI;
-  if (!uri) return;
+  if (!uri) throw new Error('MONGO_URI is not defined in environment variables');
 
   try {
-    await mongoose.connect(uri, { dbName: 'smart-waste-hub' });
+    // Fail fast in 5 seconds to prevent Vercel 10s lambda timeouts
+    await mongoose.connect(uri, { 
+      dbName: 'smart-waste-hub',
+      serverSelectionTimeoutMS: 5000, 
+    });
     isConnected = true;
     console.log('✅ MongoDB Atlas connected');
-    
-    // ── Reverse Migration Logic ──────────────────────────────────────────────
-    const db = mongoose.connection.db;
-    const roleCollections = ['citizens', 'workers', 'admins', 'champions'];
-    
-    for (const collName of roleCollections) {
-      const exists = await db.listCollections({ name: collName }).toArray();
-      if (exists.length > 0) {
-        console.log(`🔄 Reverting data from "${collName}" back to "users"...`);
-        const docs = await db.collection(collName).find({}).toArray();
-        for (const doc of docs) {
-          const { _id, ...userData } = doc;
-          // Only insert if email doesn't already exist in main collection
-          const alreadyInUsers = await User.findOne({ email: userData.email });
-          if (!alreadyInUsers) {
-            await new User(userData).save();
-          }
-        }
-        await db.collection(collName).drop();
-        console.log(`🗑️ Dropped "${collName}"`);
-      }
-    }
-
   } catch (err) {
     console.error('❌ MongoDB connection failed:', err.message);
+    throw err;
   }
 };
 
