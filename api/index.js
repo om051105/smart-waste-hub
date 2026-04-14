@@ -1,5 +1,11 @@
 import app, { connectDB } from '../server/index.js';
 
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export default async (req, res) => {
   try {
     await connectDB();
