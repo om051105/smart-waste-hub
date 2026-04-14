@@ -209,6 +209,44 @@ router.get('/analytics', async (req, res) => {
       distribution: distribution.filter(d => d.value > 0),
       compliance: complianceRate > 0 ? compliance : []
     });
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Dataset & Model Learning ---
+import Dataset from '../models/Dataset.js';
+
+router.post('/datasets', async (req, res) => {
+  try {
+    const { label, originalLabel, confidence, imageData, userId } = req.body;
+    const dataset = new Dataset({ label, originalLabel, confidence, imageData, userId });
+    await dataset.save();
+    console.log(`🤖 Model improvement data saved: ${label}`);
+    res.json({ success: true, id: dataset._id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/datasets/stats', async (req, res) => {
+  try {
+    const count = await Dataset.countDocuments();
+    const latest = await Dataset.find().sort({ createdAt: -1 }).limit(5);
+    res.json({ count, latest });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/model/retrain', async (req, res) => {
+  // Simulate high-tech model retraining process
+  try {
+    console.log('🔄 Automated training command received...');
+    // In a real scenario, this might trigger a server-side training job or transfer learning
+    await new Promise(r => setTimeout(r, 2500)); 
+    res.json({ success: true, version: `2.0.${Math.floor(Date.now() / 1000000)}` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

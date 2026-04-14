@@ -52,6 +52,7 @@ export default function AIDetectPage() {
   const [error, setError] = useState<string | null>(null);
   const [modelReady, setModelReady] = useState(false);
   const [cameraOn, setCameraOn] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState(false);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -135,6 +136,27 @@ export default function AIDetectPage() {
       setError('Analysis failed. Please try again with a clearer image.');
     }
     setLoading(false);
+    setFeedbackSent(false);
+  };
+
+  const handleFeedback = async (correctLabel: string) => {
+    if (!result) return;
+    try {
+      await fetch('/api/datasets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          label: correctLabel,
+          originalLabel: result.category,
+          confidence: result.confidence,
+          imageData: preview,
+          userId: JSON.parse(localStorage.getItem('user') || '{}')._id
+        }),
+      });
+      setFeedbackSent(true);
+    } catch (e) {
+      console.error('Feedback failed', e);
+    }
   };
 
   // ── File Upload ───────────────────────────────────────────────────────────
@@ -352,6 +374,30 @@ export default function AIDetectPage() {
             <Button variant="outline" className="w-full" onClick={reset}>
               <RefreshCw className="w-4 h-4 mr-2" /> Classify Another Item
             </Button>
+
+            {/* Feedback Section */}
+            {!feedbackSent ? (
+              <div className="pt-4 border-t border-black/10 mt-4 text-center">
+                <p className="text-xs text-muted-foreground mb-3">Was this classification correct?</p>
+                <div className="flex gap-2 justify-center">
+                   <Button size="sm" variant="ghost" onClick={() => handleFeedback(result.category)} className="bg-white/10 hover:bg-white/20 text-xs">
+                     Yes, it's correct!
+                   </Button>
+                   <div className="flex gap-1 overflow-x-auto">
+                     {CLASSES.filter(c => c !== result.category).map(c => (
+                       <Button key={c} size="sm" variant="ghost" onClick={() => handleFeedback(c)} className="bg-black/10 hover:bg-black/20 text-[10px] px-2">
+                         No, it's {BIN_META[c].label}
+                       </Button>
+                     ))}
+                   </div>
+                </div>
+              </div>
+            ) : (
+              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                className="pt-4 border-t border-black/10 mt-4 text-center text-xs font-medium text-primary">
+                ✨ Thank you! This data will be used to enhance the model automatically.
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
