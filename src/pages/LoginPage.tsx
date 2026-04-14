@@ -21,14 +21,20 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isRegister) {
-      const user = await register(name, email, password, role, area);
-      if (!user) { toast({ title: 'Email already exists or error', variant: 'destructive' }); return; }
-      navigate('/dashboard');
-    } else {
-      const user = await login(email, password);
-      if (!user) { toast({ title: 'Invalid credentials or error', variant: 'destructive' }); return; }
-      navigate('/dashboard');
+    try {
+      if (isRegister) {
+        await register(name, email, password, role, area);
+        navigate('/dashboard');
+      } else {
+        await login(email, password);
+        navigate('/dashboard');
+      }
+    } catch (err: any) {
+      toast({ 
+        title: isRegister ? 'Registration Failed' : 'Login Failed',
+        description: err.message || 'An unexpected error occurred. Please try again.',
+        variant: 'destructive' 
+      });
     }
   };
 

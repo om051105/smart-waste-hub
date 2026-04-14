@@ -29,7 +29,8 @@ router.post('/auth/register', async (req, res) => {
     const { password: _, ...userWithoutPass } = user.toJSON();
     res.json(userWithoutPass);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('❌ Registration Error DETAILS:', err);
+    res.status(500).json({ error: err.message || 'Server error during registration' });
   }
 });
 

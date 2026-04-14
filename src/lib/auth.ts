@@ -22,14 +22,17 @@ export async function login(email: string, password: string): Promise<User | nul
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Login failed');
+    }
     const user = await res.json();
     user.id = user._id; // Map MongoDB _id to id for frontend compatibility
     localStorage.setItem(SESSION_KEY, JSON.stringify(user));
     return user;
   } catch (err) {
     console.error('Login error:', err);
-    return null;
+    throw err;
   }
 }
 
@@ -40,14 +43,17 @@ export async function register(name: string, email: string, password: string, ro
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password, role, area })
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Registration failed');
+    }
     const user = await res.json();
     user.id = user._id;
     localStorage.setItem(SESSION_KEY, JSON.stringify(user));
     return user;
   } catch (err) {
     console.error('Register error:', err);
-    return null;
+    throw err;
   }
 }
 
