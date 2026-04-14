@@ -52,7 +52,14 @@ export async function register(name: string, email: string, password: string, ro
     
     const text = await res.text();
     let data;
-    try { data = JSON.parse(text); } catch (e) { data = { error: 'Server error during registration' }; }
+    try { 
+      data = JSON.parse(text); 
+    } catch (e) { 
+      // This means Vercel sent back HTML (like a 500 or 504 error page). 
+      // Let's grab the first line of the HTML page to know what Vercel crashed on.
+      const rawHtmlMsg = text.replace(/<[^>]*>?/gm, '').split('\n').filter(l => l.trim().length > 0)[0] || 'Unknown HTML error';
+      data = { error: `Vercel Infrastructure Error: ${rawHtmlMsg.substring(0, 50)}...` }; 
+    }
 
     if (!res.ok) {
       throw new Error(data.error || 'Registration failed');
