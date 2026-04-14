@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FileWarning, MapPin, Send, Clock, CheckCircle, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchComplaints, addComplaint, updateComplaintStatus, Complaint } from '@/lib/api';
+import { fetchComplaints, addComplaint, updateComplaintStatus, Complaint, POLL_INTERVAL } from '@/lib/api';
 import { User } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,7 +16,8 @@ export default function ComplaintsPage({ user }: { user: User }) {
 
   const { data: complaints = [], isLoading } = useQuery({
     queryKey: ['complaints'],
-    queryFn: fetchComplaints
+    queryFn: fetchComplaints,
+    refetchInterval: POLL_INTERVAL  // auto-refresh every 5 seconds
   });
 
   const submitMutation = useMutation({

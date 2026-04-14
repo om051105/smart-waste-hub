@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { ClipboardCheck, CheckCircle, AlertTriangle, Send, MapPin, Shield, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { User } from '@/lib/auth';
-import { fetchComplaints, updateComplaintStatus } from '@/lib/api';
+import { fetchComplaints, updateComplaintStatus, POLL_INTERVAL } from '@/lib/api';
 import StatCard from '@/components/StatCard';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,7 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 export default function ChampionDashboard({ user }: { user: User }) {
   const { data: complaints = [], isLoading } = useQuery({
     queryKey: ['complaints'],
-    queryFn: fetchComplaints
+    queryFn: fetchComplaints,
+    refetchInterval: POLL_INTERVAL
   });
   
   const queryClient = useQueryClient();

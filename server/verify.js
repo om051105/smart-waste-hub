@@ -1,0 +1,10 @@
+import mongoose from 'mongoose';
+const MONGO_URI = 'mongodb://127.0.0.1:27017/smart-waste-hub';
+await mongoose.connect(MONGO_URI);
+const db = mongoose.connection.db;
+const users = await db.collection('users').countDocuments();
+const complaints = await db.collection('complaints').countDocuments();
+const collections = await db.collection('wastecollections').countDocuments();
+const facilities = await db.collection('facilities').countDocuments();
+console.log(JSON.stringify({ users, complaints, collections, facilities }, null, 2));
+await mongoose.disconnect();

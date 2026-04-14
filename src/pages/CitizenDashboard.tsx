@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Trophy, FileWarning, GraduationCap, TrendingUp, Award, AlertTriangle, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { User } from '@/lib/auth';
-import { wasteStats, mockTrainings, fetchComplaints, fetchLeaderboard } from '@/lib/api';
+import { fetchComplaints, fetchLeaderboard, fetchAnalytics, POLL_INTERVAL } from '@/lib/api';
 import StatCard from '@/components/StatCard';
 import { Progress } from '@/components/ui/progress';
 
@@ -16,17 +16,27 @@ function getBadge(score: number) {
 export default function CitizenDashboard({ user }: { user: User }) {
   const { data: complaints = [], isLoading: isLoadingComplaints } = useQuery({
     queryKey: ['complaints'],
-    queryFn: fetchComplaints
+    queryFn: fetchComplaints,
+    refetchInterval: POLL_INTERVAL
   });
 
   const { data: leaderboard = [], isLoading: isLoadingLeaderboard } = useQuery({
     queryKey: ['leaderboard'],
-    queryFn: fetchLeaderboard
+    queryFn: fetchLeaderboard,
+    refetchInterval: POLL_INTERVAL
   });
+
+  const { data: analytics } = useQuery({
+    queryKey: ['analytics'],
+    queryFn: fetchAnalytics,
+    refetchInterval: POLL_INTERVAL
+  });
+
+  const wasteStats = analytics || { monthly: [], distribution: [], compliance: [] };
 
   const userComplaints = complaints.filter((c: any) => c.userId === (user.id || user._id));
   const badge = getBadge(user.complianceScore);
-  const trainingsCompleted = mockTrainings.filter(t => t.completed).length;
+  const trainingsCompleted = 0; // Training tracking to be implemented in backend
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -36,10 +46,10 @@ export default function CitizenDashboard({ user }: { user: User }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Compliance Score" value={user.complianceScore} icon={TrendingUp} variant="primary" trend="+5 this month" />
+        <StatCard title="Compliance Score" value={user.complianceScore} icon={TrendingUp} variant="primary" trend={user.complianceScore > 0 ? "You're making progress!" : "Active system"} />
         <StatCard title="Reward Points" value={user.rewardPoints} icon={Trophy} trend="Earn more by segregating!" />
         <StatCard title="Complaints Filed" value={isLoadingComplaints ? '...' : userComplaints.length} icon={FileWarning} />
-        <StatCard title="Trainings Done" value={`${trainingsCompleted}/${mockTrainings.length}`} icon={GraduationCap} />
+        <StatCard title="Trainings Done" value={`${trainingsCompleted}`} icon={GraduationCap} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -78,7 +88,7 @@ export default function CitizenDashboard({ user }: { user: User }) {
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie data={wasteStats.distribution} cx="50%" cy="50%" innerRadius={55} outerRadius={90} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                {wasteStats.distribution.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+                {wasteStats.distribution.map((entry: any, i: number) => <Cell key={i} fill={entry.fill} />)}
               </Pie>
               <Tooltip />
             </PieChart>

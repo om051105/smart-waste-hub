@@ -1,9 +1,27 @@
 import { Navigate } from 'react-router-dom';
 import { getSession } from '@/lib/auth';
+import { useQuery } from '@tanstack/react-query';
+import { fetchAnalytics, POLL_INTERVAL } from '@/lib/api';
+import { Loader2 } from 'lucide-react';
+
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { wasteStats } from '@/lib/api';
 
 export default function AnalyticsPage() {
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['analytics'],
+    queryFn: fetchAnalytics,
+    refetchInterval: POLL_INTERVAL
+  });
+
+  const wasteStats = stats || { monthly: [], distribution: [], compliance: [] };
+
+  if (isLoading) return (
+    <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+      <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      <p className="text-muted-foreground animate-pulse">Calculating real-time analytics...</p>
+    </div>
+  );
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
@@ -34,7 +52,6 @@ export default function AnalyticsPage() {
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie data={wasteStats.distribution} cx="50%" cy="50%" innerRadius={65} outerRadius={110} dataKey="value" label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}>
-                {wasteStats.distribution.map((e, i) => <Cell key={i} fill={e.fill} />)}
               </Pie>
               <Tooltip />
             </PieChart>

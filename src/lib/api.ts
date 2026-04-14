@@ -48,13 +48,17 @@ export interface Facility {
   address: string;
 }
 
+// Auto-refresh interval — all queries will re-fetch every 5 seconds automatically
+export const POLL_INTERVAL = 5000;
+const API_BASE = '/api';
+
 export async function fetchComplaints(): Promise<Complaint[]> {
-  const res = await fetch('/api/complaints');
+  const res = await fetch(`${API_BASE}/complaints`);
   return res.json();
 }
 
 export async function addComplaint(c: Omit<Complaint, 'id' | 'createdAt' | 'status'>): Promise<Complaint> {
-  const res = await fetch('/api/complaints', {
+  const res = await fetch(`${API_BASE}/complaints`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(c)
@@ -63,7 +67,7 @@ export async function addComplaint(c: Omit<Complaint, 'id' | 'createdAt' | 'stat
 }
 
 export async function updateComplaintStatus(id: string, status: Complaint['status']): Promise<Complaint> {
-  const res = await fetch(`/api/complaints/${id}`, {
+  const res = await fetch(`${API_BASE}/complaints/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ status })
@@ -72,47 +76,35 @@ export async function updateComplaintStatus(id: string, status: Complaint['statu
 }
 
 export async function fetchCollections(): Promise<WasteCollection[]> {
-  const res = await fetch('/api/collections');
+  const res = await fetch(`${API_BASE}/collections`);
+  return res.json();
+}
+
+export async function updateCollectionStatus(id: string, status: WasteCollection['status']): Promise<WasteCollection> {
+  const res = await fetch(`${API_BASE}/collections/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status })
+  });
   return res.json();
 }
 
 export async function fetchFacilities(): Promise<Facility[]> {
-  const res = await fetch('/api/facilities');
+  const res = await fetch(`${API_BASE}/facilities`);
   return res.json();
 }
 
 export async function fetchLeaderboard(): Promise<any[]> {
-  const res = await fetch('/api/users/leaderboard');
+  const res = await fetch(`${API_BASE}/users/leaderboard`);
   return res.json();
 }
 
-// Temporary static data until full migration
-export const wasteStats = {
-  monthly: [
-    { month: 'Jul', organic: 320, plastic: 180, metal: 60, glass: 40, hazardous: 20 },
-    { month: 'Aug', organic: 340, plastic: 170, metal: 55, glass: 45, hazardous: 18 },
-    { month: 'Sep', organic: 300, plastic: 190, metal: 70, glass: 35, hazardous: 25 },
-    { month: 'Oct', organic: 360, plastic: 160, metal: 65, glass: 50, hazardous: 15 },
-    { month: 'Nov', organic: 380, plastic: 150, metal: 58, glass: 42, hazardous: 22 },
-  ],
-  distribution: [
-    { name: 'Organic', value: 45, fill: 'hsl(152, 60%, 36%)' },
-    { name: 'Plastic', value: 25, fill: 'hsl(38, 92%, 50%)' },
-    { name: 'Metal', value: 12, fill: 'hsl(210, 80%, 55%)' },
-    { name: 'Glass', value: 10, fill: 'hsl(280, 60%, 55%)' },
-    { name: 'Hazardous', value: 8, fill: 'hsl(0, 72%, 51%)' },
-  ],
-  compliance: [
-    { month: 'Jul', score: 68 },
-    { month: 'Aug', score: 72 },
-    { month: 'Sep', score: 70 },
-    { month: 'Oct', score: 78 },
-    { month: 'Nov', score: 82 },
-  ],
-};
+export async function fetchStats() {
+  const res = await fetch(`${API_BASE}/stats`);
+  return res.json();
+}
 
-export const mockTrainings: TrainingRecord[] = [
-  { id: '1', userId: '2', title: 'Waste Segregation Basics', completed: true, score: 85, completedAt: '2024-10-01' },
-  { id: '2', userId: '2', title: 'Composting at Home', completed: false, score: 0 },
-  { id: '3', userId: '2', title: 'Hazardous Waste Handling', completed: false, score: 0 },
-];
+export async function fetchAnalytics() {
+  const res = await fetch(`${API_BASE}/analytics`);
+  return res.json();
+}

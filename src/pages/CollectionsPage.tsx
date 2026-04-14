@@ -1,11 +1,12 @@
 import { Truck, MapPin, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchCollections } from '@/lib/api';
+import { fetchCollections, POLL_INTERVAL } from '@/lib/api';
 
 export default function CollectionsPage() {
   const { data: collections = [], isLoading } = useQuery({
     queryKey: ['collections'],
-    queryFn: fetchCollections
+    queryFn: fetchCollections,
+    refetchInterval: POLL_INTERVAL
   });
 
   return (

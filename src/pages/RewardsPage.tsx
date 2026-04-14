@@ -2,13 +2,14 @@ import { motion } from 'framer-motion';
 import { Trophy, Award, TrendingUp, AlertTriangle, Star, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { User } from '@/lib/auth';
-import { fetchLeaderboard } from '@/lib/api';
+import { fetchLeaderboard, POLL_INTERVAL } from '@/lib/api';
 import { Progress } from '@/components/ui/progress';
 
 export default function RewardsPage({ user }: { user: User }) {
   const { data: leaderboard = [], isLoading } = useQuery({
     queryKey: ['leaderboard'],
-    queryFn: fetchLeaderboard
+    queryFn: fetchLeaderboard,
+    refetchInterval: POLL_INTERVAL
   });
 
   const badges = [

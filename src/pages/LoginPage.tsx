@@ -76,12 +76,6 @@ export default function LoginPage() {
           <h2 className="text-2xl font-bold font-display">{isRegister ? 'Create Account' : 'Welcome Back'}</h2>
           <p className="text-muted-foreground mt-1 mb-6">{isRegister ? 'Join the green movement' : 'Sign in to your dashboard'}</p>
 
-          {!isRegister && (
-            <div className="bg-secondary rounded-xl p-3 mb-6 text-xs text-secondary-foreground">
-              <p className="font-medium mb-1">Demo accounts (password: password123)</p>
-              <p>admin@wastewise.com · jane@example.com · mike@wastewise.com · sara@wastewise.com</p>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {isRegister && (

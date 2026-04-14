@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { GraduationCap, Play, CheckCircle, Award, Lock } from 'lucide-react';
-import { mockTrainings } from '@/lib/api';
+// mockTrainings removed to keep app clean of dummy data
+const mockTrainings: any[] = [];
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 
 export default function TrainingPage() {
-  const [trainings, setTrainings] = useState(mockTrainings);
+  const [trainings, setTrainings] = useState<any[]>([]);
   const [activeQuiz, setActiveQuiz] = useState<string | null>(null);
   const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
   const { toast } = useToast();

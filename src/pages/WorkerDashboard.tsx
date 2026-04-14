@@ -1,15 +1,22 @@
 import { motion } from 'framer-motion';
 import { Truck, CheckCircle, AlertTriangle, Clock, MapPin, Loader2, Navigation } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { User } from '@/lib/auth';
-import { fetchCollections } from '@/lib/api';
+import { fetchCollections, updateCollectionStatus, POLL_INTERVAL } from '@/lib/api';
 import StatCard from '@/components/StatCard';
 import { Button } from '@/components/ui/button';
 
 export default function WorkerDashboard({ user }: { user: User }) {
+  const queryClient = useQueryClient();
   const { data: collections = [], isLoading } = useQuery({
     queryKey: ['collections'],
-    queryFn: fetchCollections
+    queryFn: fetchCollections,
+    refetchInterval: POLL_INTERVAL
+  });
+
+  const markDoneMutation = useMutation({
+    mutationFn: (id: string) => updateCollectionStatus(id, 'completed'),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['collections'] })
   });
 
   const workerCollections = collections.filter((c: any) => c.workerId === (user.id || user._id));
@@ -59,7 +66,12 @@ export default function WorkerDashboard({ user }: { user: User }) {
                 <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" /> {c.households} households · {c.date}</p>
               </div>
               {c.status === 'pending' && (
-                <Button size="sm" className="gradient-primary text-primary-foreground">Mark Done</Button>
+                <Button 
+                  size="sm" 
+                  className="gradient-primary text-primary-foreground"
+                  disabled={markDoneMutation.isPending}
+                  onClick={() => markDoneMutation.mutate(c.id || c._id)}
+                >Mark Done</Button>
               )}
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                 c.status === 'completed' ? 'bg-success/20 text-success' :

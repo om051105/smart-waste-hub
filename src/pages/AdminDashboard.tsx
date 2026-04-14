@@ -3,14 +3,21 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Users, FileWarning, TrendingUp, Recycle, Download, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { User } from '@/lib/auth';
-import { wasteStats, fetchComplaints } from '@/lib/api';
+import { fetchComplaints, fetchStats, POLL_INTERVAL } from '@/lib/api';
 import StatCard from '@/components/StatCard';
 import { Button } from '@/components/ui/button';
 
 export default function AdminDashboard({ user }: { user: User }) {
   const { data: complaints = [], isLoading } = useQuery({
     queryKey: ['complaints'],
-    queryFn: fetchComplaints
+    queryFn: fetchComplaints,
+    refetchInterval: POLL_INTERVAL
+  });
+
+  const { data: stats } = useQuery({
+    queryKey: ['stats'],
+    queryFn: fetchStats,
+    refetchInterval: POLL_INTERVAL
   });
   
   const pending = complaints.filter((c: any) => c.status === 'pending').length;
@@ -29,17 +36,17 @@ export default function AdminDashboard({ user }: { user: User }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Users" value={156} icon={Users} variant="primary" trend="+12 this month" />
-        <StatCard title="Open Complaints" value={pending} icon={FileWarning} variant="warning" />
-        <StatCard title="Resolved" value={resolved} icon={TrendingUp} />
-        <StatCard title="Compliance Rate" value="78%" icon={Recycle} variant="info" />
+        <StatCard title="Total Users" value={stats?.totalUsers ?? '...'} icon={Users} variant="primary" trend="Live from DB" />
+        <StatCard title="Open Complaints" value={stats?.pendingComplaints ?? pending} icon={FileWarning} variant="warning" />
+        <StatCard title="Resolved" value={stats?.resolvedComplaints ?? resolved} icon={TrendingUp} />
+        <StatCard title="Compliance Rate" value={stats ? `${stats.complianceRate}%` : '...'} icon={Recycle} variant="info" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-2xl p-6 shadow-card">
           <h3 className="font-display font-semibold mb-4">Monthly Waste Collection (tons)</h3>
           <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={wasteStats.monthly}>
+            <BarChart data={[]}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
               <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
@@ -55,8 +62,7 @@ export default function AdminDashboard({ user }: { user: User }) {
           <h3 className="font-display font-semibold mb-4">Waste Distribution</h3>
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
-              <Pie data={wasteStats.distribution} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}>
-                {wasteStats.distribution.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+              <Pie data={[]} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}>
               </Pie>
               <Tooltip />
             </PieChart>
