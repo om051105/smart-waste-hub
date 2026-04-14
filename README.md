@@ -69,5 +69,4 @@ The model was trained on a massive merged dataset of **~70,000 images** from the
 - **Inference**: TensorFlow.js (Offline Browser Inference)
 - **Time**: 6-8 Hours on Google Colab T4 GPU
 
----
-*Created and maintained by [om051105](https://github.com/om051105).*
+
