@@ -210,7 +210,6 @@ router.get('/analytics', async (req, res) => {
       distribution: distribution.filter(d => d.value > 0),
       compliance: complianceRate > 0 ? compliance : []
     });
-    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
