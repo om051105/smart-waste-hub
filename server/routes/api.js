@@ -253,4 +253,17 @@ router.post('/model/retrain', async (req, res) => {
   }
 });
 
+// --- DEBUG TOOL: Reset User (Temporary for debugging) ---
+router.post('/debug/reset-user', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required' });
+    await User.findOneAndDelete({ email });
+    console.log(`🧹 Debug Reset: User ${email} deleted.`);
+    res.json({ message: `Success! User ${email} has been cleared from the database.` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
