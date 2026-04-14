@@ -22,17 +22,23 @@ export async function login(email: string, password: string): Promise<User | nul
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
+    
+    // Get text body first to handle cases where it is not JSON (like Vercel 500/404 pages)
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch (e) { data = { error: 'Unknown server error' }; }
+
     if (!res.ok) {
-      const data = await res.json();
       throw new Error(data.error || 'Login failed');
     }
-    const user = await res.json();
+    
+    const user = data;
     user.id = user._id; // Map MongoDB _id to id for frontend compatibility
     localStorage.setItem(SESSION_KEY, JSON.stringify(user));
     return user;
-  } catch (err) {
+  } catch (err: any) {
     console.error('Login error:', err);
-    throw err;
+    throw new Error(err.message || 'Server connection failed');
   }
 }
 
@@ -43,17 +49,22 @@ export async function register(name: string, email: string, password: string, ro
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password, role, area })
     });
+    
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch (e) { data = { error: 'Server error during registration' }; }
+
     if (!res.ok) {
-      const data = await res.json();
       throw new Error(data.error || 'Registration failed');
     }
-    const user = await res.json();
+    
+    const user = data;
     user.id = user._id;
     localStorage.setItem(SESSION_KEY, JSON.stringify(user));
     return user;
-  } catch (err) {
+  } catch (err: any) {
     console.error('Register error:', err);
-    throw err;
+    throw new Error(err.message || 'Connection lost. Please refresh and try again.');
   }
 }
 
