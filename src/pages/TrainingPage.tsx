@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { GraduationCap, Play, CheckCircle, Award, Lock } from 'lucide-react';
-import { mockTrainings } from '@/lib/mockData';
+import { mockTrainings } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';

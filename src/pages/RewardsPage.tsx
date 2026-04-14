@@ -1,10 +1,16 @@
 import { motion } from 'framer-motion';
-import { Trophy, Award, TrendingUp, AlertTriangle, Star } from 'lucide-react';
+import { Trophy, Award, TrendingUp, AlertTriangle, Star, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { User } from '@/lib/auth';
-import { leaderboard } from '@/lib/mockData';
+import { fetchLeaderboard } from '@/lib/api';
 import { Progress } from '@/components/ui/progress';
 
 export default function RewardsPage({ user }: { user: User }) {
+  const { data: leaderboard = [], isLoading } = useQuery({
+    queryKey: ['leaderboard'],
+    queryFn: fetchLeaderboard
+  });
+
   const badges = [
     { name: 'Green Citizen', desc: 'Score above 80', icon: Award, earned: user.complianceScore >= 80, color: 'bg-success/20 text-success' },
     { name: 'Training Pro', desc: 'All trainings complete', icon: Star, earned: false, color: 'bg-info/20 text-info' },
@@ -58,15 +64,21 @@ export default function RewardsPage({ user }: { user: User }) {
 
       <div className="bg-card rounded-2xl p-6 shadow-card">
         <h3 className="font-display font-semibold mb-4 flex items-center gap-2"><Trophy className="w-5 h-5 text-warning" /> Leaderboard</h3>
+        {isLoading ? (
+          <div className="flex justify-center p-4"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+        ) : (
         <div className="space-y-2">
-          {leaderboard.map(l => (
-            <div key={l.rank} className={`flex items-center gap-3 p-3 rounded-xl ${l.name === user.name ? 'bg-secondary border border-primary/20' : 'bg-muted/50'}`}>
-              <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${l.rank <= 3 ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>{l.rank}</span>
+          {leaderboard.map((l: any, idx: number) => {
+            const rank = idx + 1;
+            return (
+            <div key={l._id || l.id} className={`flex items-center gap-3 p-3 rounded-xl ${l.name === user.name ? 'bg-secondary border border-primary/20' : 'bg-muted/50'}`}>
+              <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${rank <= 3 ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>{rank}</span>
               <div className="flex-1"><p className="text-sm font-medium">{l.name}</p></div>
-              <span className="text-sm font-bold">{l.score}</span>
+              <span className="text-sm font-bold">{l.complianceScore || l.score}</span>
             </div>
-          ))}
+          )})}
         </div>
+        )}
       </div>
     </div>
   );

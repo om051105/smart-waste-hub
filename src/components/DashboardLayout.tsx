@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
+import {
   LayoutDashboard, FileWarning, Recycle, GraduationCap, Trophy, MapPin,
   Camera, Truck, Users, BarChart3, LogOut, Menu, X, Leaf, ChevronRight,
   Shield, ClipboardCheck
@@ -112,8 +112,8 @@ export default function DashboardLayout({ user, children }: { user: User; childr
                 onClick={() => setSidebarOpen(false)}
                 className={`
                   flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all
-                  ${isActive 
-                    ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-sidebar-primary/20' 
+                  ${isActive
+                    ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-sidebar-primary/20'
                     : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent'}
                 `}
               >

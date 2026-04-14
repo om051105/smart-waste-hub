@@ -1,7 +1,8 @@
 export type UserRole = 'citizen' | 'worker' | 'admin' | 'champion';
 
 export interface User {
-  id: string;
+  _id?: string;
+  id?: string;
   name: string;
   email: string;
   role: UserRole;
@@ -12,49 +13,42 @@ export interface User {
   createdAt: string;
 }
 
-const USERS_KEY = 'wastewise_users';
 const SESSION_KEY = 'wastewise_session';
 
-const defaultUsers: User[] = [
-  { id: '1', name: 'Admin User', email: 'admin@wastewise.com', role: 'admin', complianceScore: 100, rewardPoints: 500, createdAt: '2024-01-01' },
-  { id: '2', name: 'Jane Citizen', email: 'jane@example.com', role: 'citizen', complianceScore: 75, rewardPoints: 120, createdAt: '2024-02-15' },
-  { id: '3', name: 'Worker Mike', email: 'mike@wastewise.com', role: 'worker', complianceScore: 90, rewardPoints: 200, area: 'Zone A', createdAt: '2024-01-20' },
-  { id: '4', name: 'Green Sara', email: 'sara@wastewise.com', role: 'champion', complianceScore: 95, rewardPoints: 350, area: 'Zone B', createdAt: '2024-03-01' },
-];
-
-function getUsers(): (User & { password: string })[] {
-  const stored = localStorage.getItem(USERS_KEY);
-  if (!stored) {
-    const usersWithPw = defaultUsers.map(u => ({ ...u, password: 'password123' }));
-    localStorage.setItem(USERS_KEY, JSON.stringify(usersWithPw));
-    return usersWithPw;
+export async function login(email: string, password: string): Promise<User | null> {
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    if (!res.ok) return null;
+    const user = await res.json();
+    user.id = user._id; // Map MongoDB _id to id for frontend compatibility
+    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    return user;
+  } catch (err) {
+    console.error('Login error:', err);
+    return null;
   }
-  return JSON.parse(stored);
 }
 
-export function login(email: string, password: string): User | null {
-  const users = getUsers();
-  const found = users.find(u => u.email === email && u.password === password);
-  if (!found) return null;
-  const { password: _, ...user } = found;
-  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-  return user;
-}
-
-export function register(name: string, email: string, password: string, role: UserRole): User | null {
-  const users = getUsers();
-  if (users.find(u => u.email === email)) return null;
-  const newUser = {
-    id: crypto.randomUUID(),
-    name, email, password, role,
-    complianceScore: 50, rewardPoints: 0,
-    createdAt: new Date().toISOString(),
-  };
-  users.push(newUser);
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  const { password: _, ...user } = newUser;
-  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-  return user;
+export async function register(name: string, email: string, password: string, role: UserRole): Promise<User | null> {
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password, role })
+    });
+    if (!res.ok) return null;
+    const user = await res.json();
+    user.id = user._id;
+    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    return user;
+  } catch (err) {
+    console.error('Register error:', err);
+    return null;
+  }
 }
 
 export function logout() {

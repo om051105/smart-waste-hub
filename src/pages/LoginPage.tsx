@@ -18,15 +18,15 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isRegister) {
-      const user = register(name, email, password, role);
-      if (!user) { toast({ title: 'Email already exists', variant: 'destructive' }); return; }
+      const user = await register(name, email, password, role);
+      if (!user) { toast({ title: 'Email already exists or error', variant: 'destructive' }); return; }
       navigate('/dashboard');
     } else {
-      const user = login(email, password);
-      if (!user) { toast({ title: 'Invalid credentials', variant: 'destructive' }); return; }
+      const user = await login(email, password);
+      if (!user) { toast({ title: 'Invalid credentials or error', variant: 'destructive' }); return; }
       navigate('/dashboard');
     }
   };

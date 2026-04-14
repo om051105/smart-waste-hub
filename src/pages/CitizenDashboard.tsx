@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
-import { Trophy, Camera, FileWarning, GraduationCap, TrendingUp, Award, AlertTriangle } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { Trophy, FileWarning, GraduationCap, TrendingUp, Award, AlertTriangle, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { User } from '@/lib/auth';
-import { wasteStats, leaderboard, getComplaints, mockTrainings } from '@/lib/mockData';
+import { wasteStats, mockTrainings, fetchComplaints, fetchLeaderboard } from '@/lib/api';
 import StatCard from '@/components/StatCard';
 import { Progress } from '@/components/ui/progress';
 
@@ -13,7 +14,17 @@ function getBadge(score: number) {
 }
 
 export default function CitizenDashboard({ user }: { user: User }) {
-  const complaints = getComplaints().filter(c => c.userId === user.id);
+  const { data: complaints = [], isLoading: isLoadingComplaints } = useQuery({
+    queryKey: ['complaints'],
+    queryFn: fetchComplaints
+  });
+
+  const { data: leaderboard = [], isLoading: isLoadingLeaderboard } = useQuery({
+    queryKey: ['leaderboard'],
+    queryFn: fetchLeaderboard
+  });
+
+  const userComplaints = complaints.filter((c: any) => c.userId === (user.id || user._id));
   const badge = getBadge(user.complianceScore);
   const trainingsCompleted = mockTrainings.filter(t => t.completed).length;
 
@@ -27,12 +38,11 @@ export default function CitizenDashboard({ user }: { user: User }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Compliance Score" value={user.complianceScore} icon={TrendingUp} variant="primary" trend="+5 this month" />
         <StatCard title="Reward Points" value={user.rewardPoints} icon={Trophy} trend="Earn more by segregating!" />
-        <StatCard title="Complaints Filed" value={complaints.length} icon={FileWarning} />
+        <StatCard title="Complaints Filed" value={isLoadingComplaints ? '...' : userComplaints.length} icon={FileWarning} />
         <StatCard title="Trainings Done" value={`${trainingsCompleted}/${mockTrainings.length}`} icon={GraduationCap} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Compliance */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-2xl p-6 shadow-card lg:col-span-2">
           <h3 className="font-display font-semibold mb-4">Compliance Trend</h3>
           <ResponsiveContainer width="100%" height={220}>
@@ -46,7 +56,6 @@ export default function CitizenDashboard({ user }: { user: User }) {
           </ResponsiveContainer>
         </motion.div>
 
-        {/* Badge + Score */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-2xl p-6 shadow-card flex flex-col items-center justify-center text-center">
           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-3 ${badge.color}`}>
             <badge.icon className="w-8 h-8" />
@@ -64,7 +73,6 @@ export default function CitizenDashboard({ user }: { user: User }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Waste distribution */}
         <div className="bg-card rounded-2xl p-6 shadow-card">
           <h3 className="font-display font-semibold mb-4">Waste Distribution</h3>
           <ResponsiveContainer width="100%" height={220}>
@@ -77,21 +85,26 @@ export default function CitizenDashboard({ user }: { user: User }) {
           </ResponsiveContainer>
         </div>
 
-        {/* Leaderboard */}
         <div className="bg-card rounded-2xl p-6 shadow-card">
           <h3 className="font-display font-semibold mb-4 flex items-center gap-2"><Trophy className="w-5 h-5 text-warning" /> Leaderboard</h3>
-          <div className="space-y-3">
-            {leaderboard.map(l => (
-              <div key={l.rank} className={`flex items-center gap-3 p-3 rounded-xl ${l.name === user.name ? 'bg-secondary border border-primary/20' : 'bg-muted/50'}`}>
-                <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${l.rank <= 3 ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>{l.rank}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{l.name}</p>
-                  <p className="text-xs text-muted-foreground">{l.area}</p>
+          {isLoadingLeaderboard ? (
+            <div className="flex justify-center p-4"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+          ) : (
+            <div className="space-y-3">
+              {leaderboard.map((l: any, idx: number) => {
+                const rank = idx + 1;
+                return (
+                <div key={l._id || l.id} className={`flex items-center gap-3 p-3 rounded-xl ${l.name === user.name ? 'bg-secondary border border-primary/20' : 'bg-muted/50'}`}>
+                  <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${rank <= 3 ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>{rank}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{l.name}</p>
+                    <p className="text-xs text-muted-foreground">{l.area || 'Citizen'}</p>
+                  </div>
+                  <span className="text-sm font-bold">{l.complianceScore || l.score}</span>
                 </div>
-                <span className="text-sm font-bold">{l.score}</span>
-              </div>
-            ))}
-          </div>
+              )})}
+            </div>
+          )}
         </div>
       </div>
     </div>

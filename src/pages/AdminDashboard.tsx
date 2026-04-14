@@ -1,15 +1,20 @@
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { Users, FileWarning, TrendingUp, Recycle, Download } from 'lucide-react';
+import { Users, FileWarning, TrendingUp, Recycle, Download, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { User } from '@/lib/auth';
-import { wasteStats, getComplaints } from '@/lib/mockData';
+import { wasteStats, fetchComplaints } from '@/lib/api';
 import StatCard from '@/components/StatCard';
 import { Button } from '@/components/ui/button';
 
 export default function AdminDashboard({ user }: { user: User }) {
-  const complaints = getComplaints();
-  const pending = complaints.filter(c => c.status === 'pending').length;
-  const resolved = complaints.filter(c => c.status === 'resolved').length;
+  const { data: complaints = [], isLoading } = useQuery({
+    queryKey: ['complaints'],
+    queryFn: fetchComplaints
+  });
+  
+  const pending = complaints.filter((c: any) => c.status === 'pending').length;
+  const resolved = complaints.filter((c: any) => c.status === 'resolved').length;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -59,22 +64,12 @@ export default function AdminDashboard({ user }: { user: User }) {
         </motion.div>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-2xl p-6 shadow-card">
-        <h3 className="font-display font-semibold mb-4">Compliance Trend</h3>
-        <ResponsiveContainer width="100%" height={220}>
-          <LineChart data={wasteStats.compliance}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-            <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-            <Tooltip />
-            <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))' }} />
-          </LineChart>
-        </ResponsiveContainer>
-      </motion.div>
-
       {/* Recent complaints */}
       <div className="bg-card rounded-2xl p-6 shadow-card">
         <h3 className="font-display font-semibold mb-4">Recent Complaints</h3>
+        {isLoading ? (
+          <div className="flex justify-center p-4"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+        ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -86,8 +81,8 @@ export default function AdminDashboard({ user }: { user: User }) {
               </tr>
             </thead>
             <tbody>
-              {complaints.slice(0, 5).map(c => (
-                <tr key={c.id} className="border-b border-border/50">
+              {complaints.slice(0, 5).map((c: any) => (
+                <tr key={c.id || c._id} className="border-b border-border/50">
                   <td className="py-3 px-2 font-medium">{c.userName}</td>
                   <td className="py-3 px-2 text-muted-foreground max-w-[200px] truncate">{c.description}</td>
                   <td className="py-3 px-2">
@@ -97,12 +92,13 @@ export default function AdminDashboard({ user }: { user: User }) {
                       'bg-success/20 text-success'
                     }`}>{c.status.replace('_', ' ')}</span>
                   </td>
-                  <td className="py-3 px-2 text-muted-foreground">{c.createdAt}</td>
+                  <td className="py-3 px-2 text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );

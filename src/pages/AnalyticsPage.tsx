@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { getSession } from '@/lib/auth';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { wasteStats } from '@/lib/mockData';
+import { wasteStats } from '@/lib/api';
 
 export default function AnalyticsPage() {
   return (
