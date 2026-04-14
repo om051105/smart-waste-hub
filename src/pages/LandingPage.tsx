@@ -174,12 +174,12 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/auth')}
+            <button onClick={() => navigate('/login')}
               className="hidden md:block text-sm text-slate-400 hover:text-white transition-colors">
               Sign In
             </button>
             <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/login')}
               className="px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-medium shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-shadow">
               Get Started
             </motion.button>
@@ -198,7 +198,7 @@ export default function LandingPage() {
                 <a key={s} onClick={() => { setMenuOpen(false); document.getElementById(s.toLowerCase().replace(/ /g, '-'))?.scrollIntoView({ behavior: 'smooth' }); }}
                   className="block text-sm text-slate-400 hover:text-white cursor-pointer">{s}</a>
               ))}
-              <button onClick={() => navigate('/auth')} className="w-full mt-2 px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-medium">
+              <button onClick={() => navigate('/login')} className="w-full mt-2 px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-medium">
                 Get Started Free
               </button>
             </motion.div>
@@ -237,7 +237,7 @@ export default function LandingPage() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/login')}
               className="group flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-shadow text-sm">
               Get Started Free
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -292,7 +292,7 @@ export default function LandingPage() {
             {/* sixth cell — CTA card */}
             <FadeIn delay={0.5} direction="up">
               <motion.div whileHover={{ scale: 1.03, y: -6 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/login')}
                 className="rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 backdrop-blur-sm p-6 cursor-pointer group h-full flex flex-col items-center justify-center text-center hover:shadow-2xl hover:shadow-emerald-500/20 transition-shadow duration-300">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/30 to-teal-500/30 border border-emerald-500/40 flex items-center justify-center mb-4">
                   <Globe className="w-6 h-6 text-emerald-300" />
@@ -418,13 +418,13 @@ export default function LandingPage() {
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
-                    onClick={() => navigate('/auth')}
+                    onClick={() => navigate('/login')}
                     className="group flex items-center gap-2 px-10 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold shadow-2xl shadow-emerald-500/40 hover:shadow-emerald-500/60 transition-shadow text-base">
                     Get Started Free
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </motion.button>
                   <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-                    onClick={() => navigate('/auth')}
+                    onClick={() => navigate('/login')}
                     className="px-10 py-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm text-slate-300 hover:text-white hover:border-white/20 transition-all text-base font-medium">
                     Sign In
                   </motion.button>

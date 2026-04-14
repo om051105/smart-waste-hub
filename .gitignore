@@ -31,3 +31,8 @@ model_output/
 .kaggle/
 kaggle.json
 
+
+# Security
+.env
+.env.local
+.env.production

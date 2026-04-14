@@ -3,6 +3,7 @@ import { HashRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index";
+import LandingPage from "./pages/LandingPage";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
 import AuthPage from "./pages/AuthPage";
@@ -36,9 +37,9 @@ const App = () => (
       <Toaster />
       <HashRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/login" element={<Navigate to="/auth" replace />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/auth" element={<Navigate to="/login" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/ai-detect" element={<ProtectedRoute><AIDetectPage /></ProtectedRoute>} />
           <Route path="/complaints" element={<ProtectedRoute><UserProp>{(user) => <ComplaintsPage user={user} />}</UserProp></ProtectedRoute>} />
