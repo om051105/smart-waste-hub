@@ -53,6 +53,33 @@ export const connectDB = async () => {
     await mongoose.connect(uri, { dbName: 'smart-waste-hub' });
     isConnected = true;
     console.log('✅ MongoDB Atlas connected');
+    
+    // ── Migration Check ──────────────────────────────────────────────────────────
+    const db = mongoose.connection.db;
+    const collections = await db.listCollections({ name: 'users' }).toArray();
+    if (collections.length > 0) {
+      console.log('🔄 Old "users" collection found. Migrating data...');
+      const oldUsers = await db.collection('users').find({}).toArray();
+      
+      for (const u of oldUsers) {
+        const Model = getModelByRole(u.role);
+        // Check if already exists in new collection
+        const exists = await Model.findOne({ email: u.email });
+        if (!exists) {
+          const { _id, ...userData } = u; // Keep original data except maybe _id if conflict
+          await new Model(userData).save();
+        }
+      }
+      
+      // Optionally drop old collection to clarify the UI
+      try {
+        await db.collection('users').drop();
+        console.log('🗑️ Old "users" collection dropped successfully.');
+      } catch (e) {
+        console.log('⚠️ Could not drop old collection (might be already gone)');
+      }
+    }
+
     await seedDefaultUsers();
   } catch (err) {
     console.error('❌ MongoDB connection failed:', err.message);
