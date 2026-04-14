@@ -29,25 +29,29 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
-// Connect to DB and Start Server
-mongoose.connect(MONGO_URI)
-  .then(async () => {
-    console.log('✅ Connected to MongoDB');
-    
-    // Import models
-    const { default: User } = await import('./models/User.js');
-    const { default: Facility } = await import('./models/Facility.js');
-    const { default: WasteCollection } = await import('./models/WasteCollection.js');
-    const { default: Complaint } = await import('./models/Complaint.js');
+// Connect to DB and Export for Vercel
+const connectDB = async () => {
+  try {
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(MONGO_URI);
+      console.log('✅ Connected to MongoDB');
+    }
+  } catch (err) {
+    console.error('❌ Database connection error:', err.message);
+  }
+};
 
-    // We no longer seed demo data automatically.
-    // The database stays clean for real user registrations.
-
-
+// Start Server locally
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  connectDB().then(() => {
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
     });
-  })
-  .catch((err) => {
-    console.error('❌ Database connection error:', err.message);
   });
+}
+
+export default async (req, res) => {
+  await connectDB();
+  return app(req, res);
+};
+
