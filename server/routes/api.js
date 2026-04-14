@@ -1,16 +1,33 @@
 import express from 'express';
-import User from '../models/User.js';
+import { Citizen, Worker, Admin, Champion, getModelByRole, allUserModels } from '../models/User.js';
 import Complaint from '../models/Complaint.js';
 import WasteCollection from '../models/WasteCollection.js';
 import Facility from '../models/Facility.js';
 
 const router = express.Router();
 
+// --- Helper Functions ---
+const findUserByEmail = async (email, password) => {
+  for (const Model of allUserModels) {
+    const user = await Model.findOne({ email, password });
+    if (user) return user;
+  }
+  return null;
+};
+
+const findUserById = async (id) => {
+  for (const Model of allUserModels) {
+    const user = await Model.findById(id);
+    if (user) return { user, Model };
+  }
+  return null;
+};
+
 // --- Auth Routes ---
 router.post('/auth/login', async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await User.findOne({ email, password });
+    const user = await findUserByEmail(email, password);
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
     const { password: _, ...userWithoutPass } = user.toJSON();
     res.json(userWithoutPass);
@@ -22,9 +39,12 @@ router.post('/auth/login', async (req, res) => {
 router.post('/auth/register', async (req, res) => {
   const { name, email, password, role, area } = req.body;
   try {
-    const existing = await User.findOne({ email });
-    if (existing) return res.status(400).json({ error: 'Email already exists' });
-    const user = new User({ name, email, password, role, area, complianceScore: 0, rewardPoints: 0 });
+    // Check if user exists in any collection
+    const exists = await findUserByEmail(email, password);
+    if (exists) return res.status(400).json({ error: 'Email already exists' });
+
+    const Model = getModelByRole(role);
+    const user = new Model({ name, email, password, role, area, complianceScore: 0, rewardPoints: 0 });
     await user.save();
     const { password: _, ...userWithoutPass } = user.toJSON();
     res.json(userWithoutPass);
@@ -36,7 +56,8 @@ router.post('/auth/register', async (req, res) => {
 // --- User Routes ---
 router.get('/users/leaderboard', async (req, res) => {
   try {
-    const users = await User.find().sort({ complianceScore: -1 }).limit(10);
+    const results = await Promise.all(allUserModels.map(M => M.find().sort({ complianceScore: -1 }).limit(10)));
+    const users = results.flat().sort((a,b) => b.complianceScore - a.complianceScore).slice(0, 10);
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -45,7 +66,8 @@ router.get('/users/leaderboard', async (req, res) => {
 
 router.get('/users', async (req, res) => {
   try {
-    const users = await User.find().sort({ createdAt: -1 });
+    const results = await Promise.all(allUserModels.map(M => M.find().sort({ createdAt: -1 })));
+    const users = results.flat().sort((a,b) => b.createdAt - a.createdAt);
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -69,7 +91,8 @@ router.post('/complaints', async (req, res) => {
     await complaint.save();
     
     // Increment reporter's score
-    await User.findByIdAndUpdate(userId, { $inc: { complianceScore: 5 } });
+    const found = await findUserById(userId);
+    if (found) await found.Model.findByIdAndUpdate(userId, { $inc: { complianceScore: 5 } });
     
     res.json(complaint);
   } catch (err) {
@@ -84,7 +107,8 @@ router.patch('/complaints/:id', async (req, res) => {
     
     // If verified by Champion, give bonus to reporter and champion (if we had championId)
     if (status === 'in_progress') {
-        await User.findByIdAndUpdate(complaint.userId, { $inc: { complianceScore: 10 } });
+        const found = await findUserById(complaint.userId);
+        if (found) await found.Model.findByIdAndUpdate(complaint.userId, { $inc: { complianceScore: 10 } });
     }
     
     res.json(complaint);
@@ -123,7 +147,8 @@ router.patch('/collections/:id', async (req, res) => {
 
     // If completed, increment worker's score
     if (status === 'completed') {
-      await User.findByIdAndUpdate(collection.workerId, { $inc: { complianceScore: 20 } });
+      const found = await findUserById(collection.workerId);
+      if (found) await found.Model.findByIdAndUpdate(collection.workerId, { $inc: { complianceScore: 20 } });
     }
 
     res.json(collection);
@@ -145,14 +170,19 @@ router.get('/facilities', async (req, res) => {
 // --- Stats (for Admin Dashboard real-time) ---
 router.get('/stats', async (req, res) => {
   try {
-    const totalUsers = await User.countDocuments();
+    const counts = await Promise.all(allUserModels.map(M => M.countDocuments()));
+    const totalUsers = counts.reduce((a, b) => a + b, 0);
+    
     const totalComplaints = await Complaint.countDocuments();
     const pendingComplaints = await Complaint.countDocuments({ status: 'pending' });
     const resolvedComplaints = await Complaint.countDocuments({ status: 'resolved' });
     const completedCollections = await WasteCollection.countDocuments({ status: 'completed' });
     const totalCollections = await WasteCollection.countDocuments();
-    const complianceRate = totalUsers > 0 
-      ? Math.round((await User.aggregate([{ $group: { _id: null, avg: { $avg: '$complianceScore' } } }]))[0]?.avg || 0)
+    
+    const scores = await Promise.all(allUserModels.map(M => M.aggregate([{ $group: { _id: null, avg: { $avg: '$complianceScore' } } }])));
+    const avgScores = scores.map(s => s[0]?.avg || 0).filter(s => s > 0);
+    const complianceRate = avgScores.length > 0 
+      ? Math.round(avgScores.reduce((a, b) => a + b, 0) / avgScores.length)
       : 0;
 
     res.json({
@@ -197,9 +227,10 @@ router.get('/analytics', async (req, res) => {
     }];
 
     // Strict Real Compliance Data
-    const totalUsers = await User.countDocuments();
-    const complianceRate = totalUsers > 0 
-      ? Math.round((await User.aggregate([{ $group: { _id: null, avg: { $avg: '$complianceScore' } } }]))[0]?.avg || 0)
+    const scores = await Promise.all(allUserModels.map(M => M.aggregate([{ $group: { _id: null, avg: { $avg: '$complianceScore' } } }])));
+    const avgScores = scores.map(s => s[0]?.avg || 0).filter(s => s > 0);
+    const complianceRate = avgScores.length > 0 
+      ? Math.round(avgScores.reduce((a, b) => a + b, 0) / avgScores.length)
       : 0;
 
     const compliance = [{

@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import apiRoutes from './routes/api.js';
-import User from './models/User.js';
+import { allUserModels, getModelByRole } from './models/User.js';
 
 dotenv.config();
 
@@ -61,18 +61,25 @@ export const connectDB = async () => {
 
 // ── Seed Default Demo Users ───────────────────────────────────────────────────
 const seedDefaultUsers = async () => {
-  const count = await User.countDocuments();
-  if (count > 0) return; // Already seeded
+  // Check if any users exist in any collection
+  const counts = await Promise.all(allUserModels.map(M => M.countDocuments()));
+  const total = counts.reduce((a, b) => a + b, 0);
+  if (total > 0) return; // Already seeded
 
   const defaults = [
-    { name: 'Jane Citizen',   email: 'citizen@waste.com',  password: 'password', role: 'citizen',  complianceScore: 75, rewardPoints: 320 },
-    { name: 'Admin User',     email: 'admin@waste.com',    password: 'password', role: 'admin',    complianceScore: 88, rewardPoints: 500 },
-    { name: 'Worker Mike',    email: 'worker@waste.com',   password: 'password', role: 'worker',   complianceScore: 90, rewardPoints: 410 },
-    { name: 'Green Champion', email: 'champion@waste.com', password: 'password', role: 'champion', complianceScore: 95, rewardPoints: 610 },
+    { name: 'Jane Citizen',   email: 'citizen@waste.com',  password: 'password', role: 'citizen',  complianceScore: 75, rewardPoints: 320, area: 'Central District' },
+    { name: 'Admin User',     email: 'admin@waste.com',    password: 'password', role: 'admin',    complianceScore: 88, rewardPoints: 500, area: 'Admin Tower' },
+    { name: 'Worker Mike',    email: 'worker@waste.com',   password: 'password', role: 'worker',   complianceScore: 90, rewardPoints: 410, area: 'City Sector 7' },
+    { name: 'Green Champion', email: 'champion@waste.com', password: 'password', role: 'champion', complianceScore: 95, rewardPoints: 610, area: 'Eco Park' },
   ];
 
-  await User.insertMany(defaults);
-  console.log('🌱 Default demo users seeded');
+  for (const userData of defaults) {
+    const Model = getModelByRole(userData.role);
+    const user = new Model(userData);
+    await user.save();
+  }
+  
+  console.log('🌱 Default demo users seeded into role collections');
 };
 
 // ── Start Local Dev Server ────────────────────────────────────────────────────
