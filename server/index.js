@@ -72,27 +72,12 @@ export const connectDB = async () => {
       }
     }
 
-    await seedDefaultUsers();
   } catch (err) {
     console.error('❌ MongoDB connection failed:', err.message);
   }
 };
 
-// ── Seed Default Users ────────────────────────────────────────────────────────
-const seedDefaultUsers = async () => {
-  const count = await User.countDocuments();
-  if (count > 0) return;
 
-  const defaults = [
-    { name: 'Jane Citizen',   email: 'citizen@waste.com',  password: 'password', role: 'citizen',  complianceScore: 75, rewardPoints: 320, area: 'Central District' },
-    { name: 'Admin User',     email: 'admin@waste.com',    password: 'password', role: 'admin',    complianceScore: 88, rewardPoints: 500, area: 'Admin Tower' },
-    { name: 'Worker Mike',    email: 'worker@waste.com',   password: 'password', role: 'worker',   complianceScore: 90, rewardPoints: 410, area: 'City Sector 7' },
-    { name: 'Green Champion', email: 'champion@waste.com', password: 'password', role: 'champion', complianceScore: 95, rewardPoints: 610, area: 'Eco Park' },
-  ];
-
-  await User.insertMany(defaults);
-  console.log('🌱 Default demo users seeded into main collection');
-};
 
 const PORT = process.env.PORT || 5000;
 if (!process.env.VERCEL) {
