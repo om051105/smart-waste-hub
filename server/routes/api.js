@@ -20,11 +20,11 @@ router.post('/auth/login', async (req, res) => {
 });
 
 router.post('/auth/register', async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, area } = req.body;
   try {
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ error: 'Email already exists' });
-    const user = new User({ name, email, password, role, complianceScore: 0, rewardPoints: 0 });
+    const user = new User({ name, email, password, role, area, complianceScore: 0, rewardPoints: 0 });
     await user.save();
     const { password: _, ...userWithoutPass } = user.toJSON();
     res.json(userWithoutPass);
@@ -37,6 +37,15 @@ router.post('/auth/register', async (req, res) => {
 router.get('/users/leaderboard', async (req, res) => {
   try {
     const users = await User.find().sort({ complianceScore: -1 }).limit(10);
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/users', async (req, res) => {
+  try {
+    const users = await User.find().sort({ createdAt: -1 });
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });

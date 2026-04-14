@@ -33,12 +33,12 @@ export async function login(email: string, password: string): Promise<User | nul
   }
 }
 
-export async function register(name: string, email: string, password: string, role: UserRole): Promise<User | null> {
+export async function register(name: string, email: string, password: string, role: UserRole, area: string): Promise<User | null> {
   try {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, role })
+      body: JSON.stringify({ name, email, password, role, area })
     });
     if (!res.ok) return null;
     const user = await res.json();

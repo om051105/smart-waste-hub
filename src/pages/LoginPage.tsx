@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState<UserRole>('citizen');
+  const [area, setArea] = useState('');
   const [showPw, setShowPw] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -21,7 +22,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isRegister) {
-      const user = await register(name, email, password, role);
+      const user = await register(name, email, password, role, area);
       if (!user) { toast({ title: 'Email already exists or error', variant: 'destructive' }); return; }
       navigate('/dashboard');
     } else {
@@ -97,6 +98,12 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
+            {isRegister && (
+              <div>
+                <Label>Location / Area</Label>
+                <Input value={area} onChange={e => setArea(e.target.value)} placeholder="e.g. North Town, South District" required className="mt-1" />
+              </div>
+            )}
             {isRegister && (
               <div>
                 <Label>Role</Label>

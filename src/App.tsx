@@ -17,6 +17,7 @@ import FacilitiesPage from "./pages/FacilitiesPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import CollectionsPage from "./pages/CollectionsPage";
 import ChampionDashboard from "./pages/ChampionDashboard";
+import UsersPage from "./pages/UsersPage";
 import { getSession } from "./lib/auth";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
           <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
           <Route path="/collections" element={<ProtectedRoute><CollectionsPage /></ProtectedRoute>} />
           <Route path="/inspections" element={<ProtectedRoute><UserProp>{(user) => <ChampionDashboard user={user} />}</UserProp></ProtectedRoute>} />
+          <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
