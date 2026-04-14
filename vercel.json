@@ -3,14 +3,6 @@
   "name": "smart-waste-hub",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "installCommand": "npm install",
-  "framework": null,
-  "functions": {
-    "api/index.js": {
-      "runtime": "@vercel/node@3",
-      "includeFiles": "server/**"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",

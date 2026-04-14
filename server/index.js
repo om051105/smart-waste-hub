@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import apiRoutes from './routes/api.js';
+import User from './models/User.js';
 
 dotenv.config();
 
@@ -59,8 +60,6 @@ export const connectDB = async () => {
 };
 
 // ── Seed Default Demo Users ───────────────────────────────────────────────────
-import User from './models/User.js';
-
 const seedDefaultUsers = async () => {
   const count = await User.countDocuments();
   if (count > 0) return; // Already seeded
