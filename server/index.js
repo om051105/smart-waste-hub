@@ -71,9 +71,12 @@ export const connectDB = async () => {
 
 
 const PORT = process.env.PORT || 5000;
-if (!process.env.VERCEL) {
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
   connectDB().then(() => {
     app.listen(PORT, () => console.log(`🚀 Server running → http://localhost:${PORT}`));
+  }).catch(err => {
+    console.log(`⚠️ Local server started without DB: ${err.message}`);
+    app.listen(PORT, () => console.log(`🚀 Server running (DB Offline) → http://localhost:${PORT}`));
   });
 }
 
