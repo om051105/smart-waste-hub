@@ -127,14 +127,20 @@ export default function AdminDashboard({ user }: { user: User }) {
               </div>
             </div>
 
-            <Button onClick={handleRetrain} disabled={retraining} 
-              className="w-full sm:w-auto gradient-primary text-primary-foreground text-base py-6 shadow-xl shadow-indigo-500/20">
-              {retraining ? (
-                <><Loader2 className="w-5 h-5 mr-3 animate-spin" /> Enhancing Model...</>
-              ) : (
-                <><Brain className="w-5 h-5 mr-3" /> Trigger Automated Retraining</>
-              )}
-            </Button>
+            <div className="flex gap-4">
+              <Button onClick={handleRetrain} disabled={retraining} 
+                className="flex-1 gradient-primary text-primary-foreground text-base py-6 shadow-xl shadow-indigo-500/20">
+                {retraining ? (
+                  <><Loader2 className="w-5 h-5 mr-3 animate-spin" /> Enhancing Model...</>
+                ) : (
+                  <><Brain className="w-5 h-5 mr-3" /> Trigger Automated Retraining</>
+                )}
+              </Button>
+              <Button variant="outline" className="border-indigo-500/40 text-indigo-400 hover:bg-indigo-500/10"
+                onClick={() => window.open('https://colab.research.google.com/github/om051105/smart-waste-hub/blob/main/Smart_Waste_Trainer.ipynb', '_blank')}>
+                Open Colab Trainer
+              </Button>
+            </div>
           </div>
         </motion.div>
 

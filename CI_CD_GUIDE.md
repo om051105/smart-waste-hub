@@ -22,5 +22,15 @@ This project features a **Self-Learning Feedback Loop**:
 - **Model Evolution**: In the **Admin Dashboard**, you can see these "Learning Samples" and trigger a **Model Retrain**.
 - **Version Control**: The system tracks model versions (e.g., `v2.0.x`) and updates them dynamically as the dataset grows.
 
+## 🏋️ How to Retrain with Google Colab
+
+If you want to make your AI **actually smarter** using your collected data, follow these steps:
+
+1.  **Open the Trainer**: In your **Admin Dashboard**, click **"Open Colab Trainer"**.
+2.  **Connect Data**: In the first cell of the Google Colab notebook, paste your **MONGO_URI**. 
+3.  **Run All**: Click **Runtime ➔ Run all**. The notebook will download all your user-submitted feedback images from MongoDB and start retraining a new AI model!
+4.  **Download & Replace**: Once finished, download the `model.json` and `.bin` weights from Colab. 
+5.  **Deploy**: Upload these files to your project's `public/tfjs_model/` folder and **Git Push**. Vercel will automatically deploy your smarter AI!
+
 ---
 *Developed for Smart Waste Hub Pro*
