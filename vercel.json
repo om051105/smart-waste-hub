@@ -1,17 +1,16 @@
 {
   "version": 2,
   "name": "smart-waste-hub",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
-    },
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node"
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "framework": null,
+  "functions": {
+    "api/index.js": {
+      "runtime": "@vercel/node@3",
+      "includeFiles": "server/**"
     }
-  ],
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -19,7 +18,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/$1"
+      "destination": "/index.html"
     }
   ]
 }

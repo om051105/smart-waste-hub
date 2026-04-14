@@ -9,49 +9,80 @@ import apiRoutes from './routes/api.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/smart-waste-hub';
 
-app.use(cors());
-app.use(express.json());
+// ── Middleware ────────────────────────────────────────────────────────────────
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+app.use(express.json({ limit: '5mb' }));
 
-// Fix for __dirname in ES Modules
+// ── Fix __dirname for ES Modules ──────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Routes
+// ── API Routes ────────────────────────────────────────────────────────────────
 app.use('/api', apiRoutes);
 
-// Serve Frontend in Production
-app.use(express.static(path.join(__dirname, '../dist')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
+// ── Health Check ──────────────────────────────────────────────────────────────
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' });
 });
 
-// Connect to DB and Export for Vercel
-const connectDB = async () => {
-  try {
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(MONGO_URI);
-      console.log('✅ Connected to MongoDB');
-    }
-  } catch (err) {
-    console.error('❌ Database connection error:', err.message);
-  }
-};
-
-// Start Server locally
-if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-  connectDB().then(() => {
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
-    });
+// ── Serve Frontend (only for local production mode) ───────────────────────────
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../dist')));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
   });
 }
 
-export default async (req, res) => {
-  await connectDB();
-  return app(req, res);
+// ── MongoDB Connection (cached for serverless) ────────────────────────────────
+let isConnected = false;
+
+export const connectDB = async () => {
+  if (isConnected) return;
+  const uri = process.env.MONGO_URI;
+  if (!uri) {
+    console.error('❌ MONGO_URI is not set in environment variables!');
+    return;
+  }
+  try {
+    await mongoose.connect(uri, { dbName: 'smart-waste-hub' });
+    isConnected = true;
+    console.log('✅ MongoDB Atlas connected');
+    await seedDefaultUsers();
+  } catch (err) {
+    console.error('❌ MongoDB connection failed:', err.message);
+  }
 };
 
+// ── Seed Default Demo Users ───────────────────────────────────────────────────
+import User from './models/User.js';
+
+const seedDefaultUsers = async () => {
+  const count = await User.countDocuments();
+  if (count > 0) return; // Already seeded
+
+  const defaults = [
+    { name: 'Jane Citizen',   email: 'citizen@waste.com',  password: 'password', role: 'citizen',  complianceScore: 75, rewardPoints: 320 },
+    { name: 'Admin User',     email: 'admin@waste.com',    password: 'password', role: 'admin',    complianceScore: 88, rewardPoints: 500 },
+    { name: 'Worker Mike',    email: 'worker@waste.com',   password: 'password', role: 'worker',   complianceScore: 90, rewardPoints: 410 },
+    { name: 'Green Champion', email: 'champion@waste.com', password: 'password', role: 'champion', complianceScore: 95, rewardPoints: 610 },
+  ];
+
+  await User.insertMany(defaults);
+  console.log('🌱 Default demo users seeded');
+};
+
+// ── Start Local Dev Server ────────────────────────────────────────────────────
+const PORT = process.env.PORT || 5000;
+
+if (!process.env.VERCEL) {
+  connectDB().then(() => {
+    app.listen(PORT, () => console.log(`🚀 Server running → http://localhost:${PORT}`));
+  });
+}
+
+export default app;
