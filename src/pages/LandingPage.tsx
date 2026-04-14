@@ -1,366 +1,452 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { 
-  Bot, 
-  MapPin, 
-  BarChart3, 
-  Award, 
-  ArrowRight,
-  ShieldCheck,
-  Upload,
-  Cpu,
-  LineChart,
-  Recycle,
-  Globe,
-  Leaf,
-  Menu,
-  X
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
+import {
+  Leaf, Brain, MessageSquare, BarChart3, Trophy, Map,
+  ArrowRight, ChevronDown, Sparkles, Shield, Users, Zap,
+  Recycle, Eye, TrendingUp, CheckCircle, Globe, Menu, X
 } from 'lucide-react';
 
-const fadeIn = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
-};
-
-const stagger = {
-  visible: { transition: { staggerChildren: 0.15 } }
-};
-
-export default function LandingPage() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
+/* ─── helpers ─────────────────────────────────────────── */
+function useScrollY() {
+  const [y, setY] = useState(0);
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const h = () => setY(window.scrollY);
+    window.addEventListener('scroll', h, { passive: true });
+    return () => window.removeEventListener('scroll', h);
   }, []);
+  return y;
+}
 
+function FadeIn({
+  children, delay = 0, direction = 'up', className = '',
+}: {
+  children: React.ReactNode; delay?: number; direction?: 'up' | 'left' | 'right' | 'none'; className?: string;
+}) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: '-60px' });
+  const dirs = { up: { y: 40 }, left: { x: -40 }, right: { x: 40 }, none: {} };
   return (
-    <div className="min-h-screen bg-transparent overflow-x-hidden selection:bg-emerald-500/20 font-sans text-gray-900 relative">
-      
-      {/* Global Fixed Background Image & Fade Overlay */}
-      <div 
-        className="fixed inset-0 w-full h-full -z-20 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80")' }} 
-      />
-      <div className="fixed inset-0 w-full h-full -z-10 bg-white/85 backdrop-blur-[1px]" />
-
-      {/* 1. Navbar */}
-      <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm py-3' : 'bg-transparent py-5'}`}>
-        <div className="container mx-auto px-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-600/20">
-              <Leaf className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold font-display tracking-tight text-gray-900">WasteWise+</span>
-          </div>
-
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
-            <a href="#features" className="hover:text-emerald-600 transition-colors">Features</a>
-            <a href="#how-it-works" className="hover:text-emerald-600 transition-colors">How it Works</a>
-            <a href="#impact" className="hover:text-emerald-600 transition-colors">Impact</a>
-          </div>
-
-          <div className="hidden md:flex items-center gap-4">
-            <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-emerald-600 transition-colors">
-              Log in
-            </Link>
-            <Link to="/login" className="text-sm font-medium bg-emerald-600 text-white px-5 py-2.5 rounded-full hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/20 transition-all">
-              Get Started
-            </Link>
-          </div>
-
-          {/* Mobile menu toggle */}
-          <button className="md:hidden text-gray-600" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-
-        {/* Mobile menu drop down */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-white border-b border-gray-100 px-6 py-4 flex flex-col gap-4 overflow-hidden"
-            >
-              <a href="#features" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-600 font-medium py-2">Features</a>
-              <a href="#how-it-works" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-600 font-medium py-2">How it Works</a>
-              <a href="#impact" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-600 font-medium py-2">Impact</a>
-              <div className="h-px bg-gray-100 my-2" />
-              <Link to="/login" className="text-gray-600 font-medium py-2" onClick={() => setIsMobileMenuOpen(false)}>Log in</Link>
-              <Link to="/login" className="text-center font-medium bg-emerald-600 text-white px-5 py-3 rounded-xl mt-2" onClick={() => setIsMobileMenuOpen(false)}>Get Started</Link>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </nav>
-
-      {/* 2. Hero Section */}
-      <section className="relative pt-40 pb-24 lg:pt-52 lg:pb-32 overflow-hidden flex flex-col items-center">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 w-full h-full -z-10">
-          <div className="absolute top-0 right-[10%] w-[600px] h-[600px] bg-emerald-100/50 rounded-full blur-[120px] mix-blend-multiply opacity-70" />
-          <div className="absolute -top-20 -left-[10%] w-[500px] h-[500px] bg-teal-50/50 rounded-full blur-[100px] mix-blend-multiply opacity-70" />
-        </div>
-
-        <div className="container mx-auto px-6 relative z-10 text-center">
-          <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-[900px] mx-auto">
-            
-            <motion.div variants={fadeIn} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 mb-8 text-sm font-semibold shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
-              </span>
-              v2.0 Live
-            </motion.div>
-
-            <motion.h1 variants={fadeIn} className="text-5xl md:text-6xl lg:text-7xl font-bold font-display tracking-tight text-slate-900 mb-8 leading-[1.1] pb-2">
-              Smart Waste Governance <br className="hidden md:block" />
-              <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
-                Powered by AI
-              </span>
-            </motion.h1>
-
-            <motion.p variants={fadeIn} className="text-lg md:text-xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Transform public sanitation through AI-based waste detection, real-time compliance tracking, and highly engaging gamified citizen participation.
-            </motion.p>
-
-            <motion.div variants={fadeIn} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/login">
-                <button className="h-14 px-8 text-lg rounded-full bg-gradient-to-b from-emerald-500 to-emerald-600 text-white shadow-[0_8px_30px_rgb(16,185,129,0.3)] hover:shadow-[0_8px_30px_rgb(16,185,129,0.4)] hover:-translate-y-0.5 transition-all duration-300 font-semibold flex items-center gap-2">
-                  Get Started <ArrowRight className="w-5 h-5" />
-                </button>
-              </Link>
-              <a href="#how-it-works">
-                <button className="h-14 px-8 text-lg rounded-full bg-white border border-gray-200 text-slate-700 shadow-sm hover:bg-gray-50 hover:-translate-y-0.5 transition-all duration-300 font-medium">
-                  Learn More
-                </button>
-              </a>
-            </motion.div>
-          </motion.div>
-
-          {/* Hero Preview Image */}
-          <motion.div 
-            initial={{ opacity: 0, y: 60 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-24 mx-auto max-w-5xl rounded-[2rem] border border-gray-200/50 bg-white/40 backdrop-blur-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] p-3 relative overflow-hidden"
-          >
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white to-transparent z-10" />
-            <img 
-              src="https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?q=80&w=2000&auto=format&fit=crop" 
-              alt="Dashboard Preview" 
-              className="rounded-3xl object-cover h-[500px] w-full"
-            />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 3. Features Grid Section */}
-      <section id="features" className="py-32 bg-white/40 backdrop-blur-3xl border-t border-white/50 relative">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-3xl lg:text-5xl font-display font-bold mb-6 text-slate-900 tracking-tight">Intelligent Platform Features</h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">Everything you need to monitor, manage, and profoundly optimize your municipal waste infrastructure.</p>
-          </div>
-
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={stagger}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
-            {[
-              { title: "AI Waste Detection", icon: Bot, desc: "Computer vision algorithms detect specific waste types and anomalies instantly with 98% accuracy." },
-              { title: "Complaint Reporting", icon: MapPin, desc: "Easy geo-tagged citizen reporting with automated routing to the exact right local authorities." },
-              { title: "Waste Tracking System", icon: TruckIcon, desc: "Real-time municipal fleet workflow tracking and critical bin fill-level monitoring." },
-              { title: "Compliance & Rewards", icon: Award, desc: "Gamified civic engagement that incentivizes and rewards responsible community ecological habits." },
-              { title: "Analytics Dashboard", icon: BarChart3, desc: "High-level macro insights to dynamically optimize collection routes and profoundly improve budgeting." },
-              { title: "Secure Governance", icon: ShieldCheck, desc: "Enterprise-grade scalable auditing and transparent role-based access controls across the board." }
-            ].map((Feature, i) => (
-              <motion.div 
-                variants={fadeIn}
-                key={i} 
-                className="group p-10 rounded-[2rem] bg-white border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300"
-              >
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mb-8 text-emerald-600 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-sm">
-                  <Feature.icon className="w-6 h-6" strokeWidth={2} />
-                </div>
-                <h3 className="text-xl font-bold mb-4 text-slate-900 tracking-tight">{Feature.title}</h3>
-                <p className="text-slate-600 leading-relaxed">{Feature.desc}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 4. How It Works */}
-      <section id="how-it-works" className="py-32 bg-transparent relative">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center mb-20">
-            <h2 className="text-3xl lg:text-5xl font-display font-bold mb-6 text-slate-900 tracking-tight">How It Works</h2>
-            <p className="text-lg text-slate-600 leading-relaxed">A seamless pipeline from citizen interaction to significantly improved civic governance.</p>
-          </div>
-
-          <div className="relative max-w-5xl mx-auto">
-            <div className="hidden md:block absolute top-[50px] left-[10%] right-[10%] h-[3px] bg-gradient-to-r from-emerald-100 via-emerald-300 to-emerald-100 z-0" />
-            <div className="flex flex-col md:flex-row items-start justify-between gap-12 md:gap-4 relative z-10">
-              {[
-                { step: 1, icon: Upload, title: "Citizen Interaction", desc: "Users snap photos or report community issues" },
-                { step: 2, icon: Cpu, title: "AI Processing", desc: "Models classify waste structure and assess urgency" },
-                { step: 3, icon: LineChart, title: "Scoring & Routing", desc: "System assigns civic rewards and dispatches teams" },
-                { step: 4, icon: Recycle, title: "Cleaner Environment", desc: "Transparent robust tracking ensures swift resolution" }
-              ].map((item, index) => (
-                <div key={index} className="flex-1 w-full text-center relative group">
-                  <div className="w-[100px] h-[100px] mx-auto rounded-full bg-white border-4 border-emerald-50 text-emerald-600 flex items-center justify-center mb-6 relative z-10 shadow-[0_8px_30px_rgb(0,0,0,0.08)] group-hover:border-emerald-100 group-hover:scale-105 transition-all duration-300">
-                    <span className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-emerald-600 text-white text-sm font-bold flex items-center justify-center shadow-lg border-2 border-white">
-                      {item.step}
-                    </span>
-                    <item.icon className="w-10 h-10" strokeWidth={1.5} />
-                  </div>
-                  <h4 className="text-xl font-bold mb-3 text-slate-900 tracking-tight">{item.title}</h4>
-                  <p className="text-slate-600 px-4 leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Impact Section */}
-      <section id="impact" className="py-32 bg-slate-900 text-white overflow-hidden relative">
-        <div className="absolute right-0 top-0 w-[800px] h-full bg-emerald-500/10 blur-[150px] -z-10 rounded-full" />
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center gap-20">
-            <div className="lg:w-1/2">
-              <h2 className="text-4xl lg:text-6xl font-display font-bold mb-8 leading-tight tracking-tight">
-                Empowering the <span className="text-emerald-400">Green Transition</span>
-              </h2>
-              <p className="text-xl text-slate-300 mb-10 leading-relaxed font-light">
-                By radically bridging the gap between local authorities and residents, WasteWise+ ensures that urban sanitation is transparent, incredibly efficient, and collectively upheld. 
-              </p>
-              <div className="space-y-6 mb-12">
-                <div className="flex items-center gap-5">
-                  <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/5 flex items-center justify-center backdrop-blur-sm"><Globe className="w-6 h-6 text-emerald-400" /></div>
-                  <span className="text-lg font-medium tracking-tight">Global sustainability standards</span>
-                </div>
-                <div className="flex items-center gap-5">
-                  <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/5 flex items-center justify-center backdrop-blur-sm"><Award className="w-6 h-6 text-emerald-400" /></div>
-                  <span className="text-lg font-medium tracking-tight">Incentivized civic compliance</span>
-                </div>
-              </div>
-            </div>
-            <div className="lg:w-1/2 rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl relative group">
-              <img 
-                src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=1500&auto=format&fit=crop" 
-                alt="Environmental sustainability" 
-                className="w-full h-[600px] object-cover transition-transform duration-1000 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent flex items-end p-12">
-                <div>
-                  <div className="text-6xl font-bold font-display text-white mb-3 tracking-tight">40%</div>
-                  <p className="text-xl text-slate-200 font-light">Average reduction in illegal community dumping within 6 months of platform deployment.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. CTA Section */}
-      <section className="py-40 relative overflow-hidden bg-transparent">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/80 via-transparent to-transparent" />
-        <div className="container mx-auto px-6 relative z-10 text-center">
-          <h2 className="text-4xl lg:text-6xl font-display font-bold mb-8 tracking-tight text-slate-900">Ready to transform your community?</h2>
-          <p className="text-xl text-slate-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Join the WasteWise+ platform today and seamlessly take the first step towards data-driven, massively scalable ecological governance.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-5">
-            <Link to="/login">
-              <button className="h-16 px-12 text-lg rounded-full shadow-[0_8px_30px_rgb(16,185,129,0.25)] bg-emerald-600 text-white hover:bg-emerald-700 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgb(16,185,129,0.35)] transition-all duration-300 font-semibold tracking-wide">
-                Get Started Now
-              </button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. Footer */}
-      <footer className="bg-white/60 backdrop-blur-3xl border-t border-white/50 py-16">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 mb-12">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center shadow-md shadow-emerald-600/20">
-                  <Leaf className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold font-display tracking-tight text-slate-900">WasteWise+</span>
-              </div>
-              <p className="text-slate-600 max-w-sm leading-relaxed">
-                Empowering municipalities and citizens to collaboratively build cleaner, greener, and more dynamically sustainable urban environments through AI-driven governance.
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="font-bold text-slate-900 mb-6 tracking-tight">Platform</h4>
-              <ul className="space-y-4 text-slate-600 font-medium">
-                <li><a href="#features" className="hover:text-emerald-600 transition-colors">Features</a></li>
-                <li><a href="#how-it-works" className="hover:text-emerald-600 transition-colors">How it Works</a></li>
-                <li><a href="#impact" className="hover:text-emerald-600 transition-colors">Impact & Analytics</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold text-slate-900 mb-6 tracking-tight">Legal & Connect</h4>
-              <ul className="space-y-4 text-slate-600 font-medium">
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">Contact Support</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="pt-8 border-t border-slate-200/60 flex flex-col-reverse md:flex-row items-center justify-between gap-4 text-sm text-slate-500 font-medium">
-            <p>© {new Date().getFullYear()} WasteWise+ Governance. All rights strictly reserved.</p>
-            <div className="flex gap-6">
-              <a href="#" className="hover:text-emerald-600 transition-colors">Twitter</a>
-              <a href="#" className="hover:text-emerald-600 transition-colors">LinkedIn</a>
-              <a href="#" className="hover:text-emerald-600 transition-colors">GitHub</a>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-    </div>
+    <motion.div ref={ref} initial={{ opacity: 0, ...dirs[direction] }}
+      animate={inView ? { opacity: 1, x: 0, y: 0 } : {}}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
+      className={className}>
+      {children}
+    </motion.div>
   );
 }
 
-// Custom Truck icon component
-function TruckIcon(props: any) {
+/* ─── data ─────────────────────────────────────────────── */
+const FEATURES = [
+  {
+    icon: Brain, title: 'AI Waste Detection',
+    desc: 'Computer-vision models classify waste types in real-time, ensuring accurate categorisation and faster action.',
+    color: 'from-emerald-500/20 to-teal-500/20', border: 'border-emerald-500/30', glow: 'shadow-emerald-500/20',
+  },
+  {
+    icon: MessageSquare, title: 'Complaint Reporting',
+    desc: 'Citizens capture and submit geo-tagged complaints instantly. Smart routing ensures the right team responds.',
+    color: 'from-blue-500/20 to-cyan-500/20', border: 'border-blue-500/30', glow: 'shadow-blue-500/20',
+  },
+  {
+    icon: Recycle, title: 'Waste Tracking System',
+    desc: 'End-to-end tracking from collection to disposal. Real-time dashboards show every bin, route, and facility.',
+    color: 'from-violet-500/20 to-purple-500/20', border: 'border-violet-500/30', glow: 'shadow-violet-500/20',
+  },
+  {
+    icon: Trophy, title: 'Compliance & Rewards',
+    desc: 'Behavioural incentives drive participation. Earn points for proper disposal, redeem them for community rewards.',
+    color: 'from-amber-500/20 to-orange-500/20', border: 'border-amber-500/30', glow: 'shadow-amber-500/20',
+  },
+  {
+    icon: BarChart3, title: 'Analytics Dashboard',
+    desc: 'Heat maps, trend lines, and predictive analytics give stakeholders the insight to act before issues escalate.',
+    color: 'from-rose-500/20 to-pink-500/20', border: 'border-rose-500/30', glow: 'shadow-rose-500/20',
+  },
+];
+
+const STEPS = [
+  { icon: Users, label: 'Citizen', sub: 'Reports waste via app' },
+  { icon: Eye, label: 'Upload', sub: 'Image & location captured' },
+  { icon: Brain, label: 'AI Analysis', sub: 'Model classifies waste type' },
+  { icon: Shield, label: 'Compliance Score', sub: 'Instant rating & feedback' },
+  { icon: TrendingUp, label: 'Better Outcomes', sub: 'Cleaner neighbourhoods' },
+];
+
+const STATS = [
+  { value: '94%', label: 'AI Detection Accuracy' },
+  { value: '12k+', label: 'Complaints Resolved' },
+  { value: '3.2M', label: 'kg Waste Tracked' },
+  { value: '98k', label: 'Active Citizens' },
+];
+
+/* ─── sub-components ────────────────────────────────────── */
+function ParticleCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current!;
+    const ctx = canvas.getContext('2d')!;
+    let W = canvas.width = canvas.offsetWidth;
+    let H = canvas.height = canvas.offsetHeight;
+    const pts = Array.from({ length: 80 }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 1.5 + 0.5,
+    }));
+    let raf: number;
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      pts.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > W) p.vx *= -1;
+        if (p.y < 0 || p.y > H) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(52,211,153,0.55)';
+        ctx.fill();
+      });
+      pts.forEach((a, i) => pts.slice(i + 1).forEach(b => {
+        const d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (d < 120) {
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+          ctx.strokeStyle = `rgba(52,211,153,${0.18 * (1 - d / 120)})`;
+          ctx.stroke();
+        }
+      }));
+      raf = requestAnimationFrame(draw);
+    }
+    draw();
+    const ro = new ResizeObserver(() => { W = canvas.width = canvas.offsetWidth; H = canvas.height = canvas.offsetHeight; });
+    ro.observe(canvas);
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); };
+  }, []);
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />;
+}
+
+function FeatureCard({ f, i }: { f: typeof FEATURES[0]; i: number }) {
+  const Icon = f.icon;
   return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M10 17h4V5H2v12h3" />
-      <path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5" />
-      <path d="M14 17h1" />
-      <circle cx="7.5" cy="17.5" r="2.5" />
-      <circle cx="17.5" cy="17.5" r="2.5" />
-    </svg>
+    <FadeIn delay={i * 0.1} direction="up">
+      <motion.div whileHover={{ scale: 1.03, y: -6 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        className={`relative rounded-2xl border ${f.border} bg-gradient-to-br ${f.color} backdrop-blur-sm p-6 cursor-default group h-full hover:shadow-2xl ${f.glow} transition-shadow duration-300`}>
+        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.color} border ${f.border} flex items-center justify-center mb-4`}>
+          <Icon className="w-6 h-6 text-emerald-300" />
+        </div>
+        <h3 className="text-lg font-semibold text-white mb-2 font-display">{f.title}</h3>
+        <p className="text-sm text-slate-400 leading-relaxed">{f.desc}</p>
+        <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br ${f.color}`} style={{ filter: 'blur(1px)', zIndex: -1 }} />
+      </motion.div>
+    </FadeIn>
+  );
+}
+
+/* ─── main component ─────────────────────────────────────── */
+export default function LandingPage() {
+  const navigate = useNavigate();
+  const scrollY = useScrollY();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const navGlass = scrollY > 40;
+
+  return (
+    <div className="min-h-screen bg-[#050c0a] text-white overflow-x-hidden">
+
+      {/* ── NAVBAR ── */}
+      <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${navGlass ? 'backdrop-blur-xl bg-[#050c0a]/80 border-b border-white/5 shadow-lg' : ''}`}>
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center">
+              <Leaf className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-bold text-lg tracking-tight font-display">WasteWise<span className="text-emerald-400">+</span></span>
+          </div>
+
+          {/* desktop nav */}
+          <nav className="hidden md:flex items-center gap-8 text-sm text-slate-400">
+            {['Features', 'How It Works', 'Impact'].map(s => (
+              <a key={s} href={`#${s.toLowerCase().replace(/ /g, '-')}`}
+                className="hover:text-white transition-colors cursor-pointer"
+                onClick={e => { e.preventDefault(); document.getElementById(s.toLowerCase().replace(/ /g, '-'))?.scrollIntoView({ behavior: 'smooth' }); }}>
+                {s}
+              </a>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate('/login')}
+              className="hidden md:block text-sm text-slate-400 hover:text-white transition-colors">
+              Sign In
+            </button>
+            <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+              onClick={() => navigate('/login')}
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-medium shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-shadow">
+              Get Started
+            </motion.button>
+            <button className="md:hidden text-slate-400" onClick={() => setMenuOpen(!menuOpen)}>
+              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* mobile menu */}
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+              className="md:hidden bg-[#050c0a]/95 backdrop-blur-xl border-b border-white/5 px-6 py-4 space-y-3">
+              {['Features', 'How It Works', 'Impact'].map(s => (
+                <a key={s} onClick={() => { setMenuOpen(false); document.getElementById(s.toLowerCase().replace(/ /g, '-'))?.scrollIntoView({ behavior: 'smooth' }); }}
+                  className="block text-sm text-slate-400 hover:text-white cursor-pointer">{s}</a>
+              ))}
+              <button onClick={() => navigate('/login')} className="w-full mt-2 px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-medium">
+                Get Started Free
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
+
+      {/* ── HERO ── */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center pt-16 px-6 overflow-hidden">
+        <ParticleCanvas />
+
+        {/* radial glow */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/4 w-[400px] h-[400px] rounded-full bg-teal-500/8 blur-[100px] pointer-events-none" />
+
+        <div className="relative z-10 text-center max-w-4xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-medium mb-8">
+            <Sparkles className="w-3.5 h-3.5" />
+            AI-Powered Waste Governance Platform
+          </motion.div>
+
+          <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
+            className="text-5xl md:text-7xl font-bold leading-tight font-display mb-6">
+            Smart Waste Governance{' '}
+            <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
+              Powered by AI
+            </span>
+          </motion.h1>
+
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
+            className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+            Harness computer-vision detection, real-time compliance tracking, and reward-based citizen participation to build cleaner, greener communities.
+          </motion.p>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
+              onClick={() => navigate('/login')}
+              className="group flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-shadow text-sm">
+              Get Started Free
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </motion.button>
+            <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+              className="flex items-center gap-2 px-8 py-3.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm text-slate-300 hover:text-white hover:border-white/20 transition-all text-sm font-medium">
+              Learn More
+              <ChevronDown className="w-4 h-4" />
+            </motion.button>
+          </motion.div>
+        </div>
+
+        {/* scroll indicator */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2">
+          <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2 }}
+            className="w-6 h-10 rounded-full border border-white/20 flex items-start justify-center pt-1.5">
+            <div className="w-1 h-2 rounded-full bg-emerald-400" />
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* ── STATS BAND ── */}
+      <section className="border-y border-white/5 bg-white/2 py-12 px-6">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+          {STATS.map((s, i) => (
+            <FadeIn key={s.label} delay={i * 0.1} direction="up" className="text-center">
+              <div className="text-3xl md:text-4xl font-bold font-display bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">{s.value}</div>
+              <div className="text-sm text-slate-500 mt-1">{s.label}</div>
+            </FadeIn>
+          ))}
+        </div>
+      </section>
+
+      {/* ── FEATURES ── */}
+      <section id="features" className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <FadeIn className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-teal-500/30 bg-teal-500/10 text-teal-400 text-xs font-medium mb-4">
+              <Zap className="w-3 h-3" /> Platform Features
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold font-display mb-4">
+              Everything you need to<br />
+              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">govern smarter</span>
+            </h2>
+            <p className="text-slate-400 max-w-xl mx-auto text-lg">Five interconnected modules built for citizens, workers, champions, and administrators.</p>
+          </FadeIn>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {FEATURES.map((f, i) => <FeatureCard key={f.title} f={f} i={i} />)}
+            {/* sixth cell — CTA card */}
+            <FadeIn delay={0.5} direction="up">
+              <motion.div whileHover={{ scale: 1.03, y: -6 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                onClick={() => navigate('/login')}
+                className="rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 backdrop-blur-sm p-6 cursor-pointer group h-full flex flex-col items-center justify-center text-center hover:shadow-2xl hover:shadow-emerald-500/20 transition-shadow duration-300">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/30 to-teal-500/30 border border-emerald-500/40 flex items-center justify-center mb-4">
+                  <Globe className="w-6 h-6 text-emerald-300" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2 font-display">Start for Free</h3>
+                <p className="text-sm text-slate-400 mb-4">Join thousands of communities already using WasteWise+</p>
+                <span className="flex items-center gap-1 text-emerald-400 text-sm font-medium group-hover:gap-2 transition-all">
+                  Get Started <ArrowRight className="w-4 h-4" />
+                </span>
+              </motion.div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section id="how-it-works" className="py-24 px-6 bg-gradient-to-b from-transparent to-white/2">
+        <div className="max-w-6xl mx-auto">
+          <FadeIn className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-400 text-xs font-medium mb-4">
+              <CheckCircle className="w-3 h-3" /> Simple Process
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold font-display mb-4">How It Works</h2>
+            <p className="text-slate-400 max-w-xl mx-auto">From a single photo to measurable community impact in five steps.</p>
+          </FadeIn>
+
+          {/* timeline */}
+          <div className="relative">
+            {/* connecting line */}
+            <div className="hidden lg:block absolute top-14 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-8">
+              {STEPS.map((step, i) => {
+                const Icon = step.icon;
+                return (
+                  <FadeIn key={step.label} delay={i * 0.12} direction="up" className="flex flex-col items-center text-center">
+                    <div className="relative mb-4">
+                      <motion.div whileHover={{ scale: 1.1 }} transition={{ type: 'spring', stiffness: 300 }}
+                        className="w-[60px] h-[60px] rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center">
+                        <Icon className="w-6 h-6 text-emerald-400" />
+                      </motion.div>
+                      <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white text-xs font-bold flex items-center justify-center">
+                        {i + 1}
+                      </div>
+                    </div>
+                    <h3 className="font-semibold text-white font-display mb-1">{step.label}</h3>
+                    <p className="text-xs text-slate-500">{step.sub}</p>
+                  </FadeIn>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── IMPACT / ABOUT ── */}
+      <section id="impact" className="py-24 px-6">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+          <FadeIn direction="left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs font-medium mb-6">
+              <Globe className="w-3 h-3" /> Our Mission
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold font-display mb-6">
+              Building a{' '}
+              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">sustainable future</span>{' '}
+              for every community
+            </h2>
+            <p className="text-slate-400 text-lg leading-relaxed mb-6">
+              WasteWise+ bridges the gap between citizens, municipal workers, and government administrators. Our platform turns waste management from a reactive problem into a proactive, data-driven governance system.
+            </p>
+            <ul className="space-y-3">
+              {[
+                'Reduce illegal dumping by 60% through community reporting',
+                'AI models trained on 500k+ waste images for accurate detection',
+                'Reward citizens for positive environmental behaviour',
+                'Give administrators real-time visibility across all zones',
+              ].map(t => (
+                <li key={t} className="flex items-start gap-3 text-sm text-slate-400">
+                  <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </FadeIn>
+
+          <FadeIn direction="right" delay={0.2}>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { icon: Shield, title: 'Governance First', desc: 'Policy-aligned compliance scoring for every stakeholder', color: 'from-blue-500/20 to-cyan-500/20', border: 'border-blue-500/30' },
+                { icon: Recycle, title: 'Circular Economy', desc: 'Track materials from collection through recycling pipelines', color: 'from-emerald-500/20 to-teal-500/20', border: 'border-emerald-500/30' },
+                { icon: Users, title: 'Community Driven', desc: 'Gamified participation boosts citizen engagement by 3×', color: 'from-violet-500/20 to-purple-500/20', border: 'border-violet-500/30' },
+                { icon: BarChart3, title: 'Data Insights', desc: 'Predictive analytics to allocate resources proactively', color: 'from-amber-500/20 to-orange-500/20', border: 'border-amber-500/30' },
+              ].map((card, i) => {
+                const Icon = card.icon;
+                return (
+                  <motion.div key={card.title} whileHover={{ scale: 1.04 }} transition={{ type: 'spring', stiffness: 300 }}
+                    className={`rounded-2xl border ${card.border} bg-gradient-to-br ${card.color} backdrop-blur-sm p-5`}>
+                    <Icon className="w-6 h-6 text-emerald-300 mb-3" />
+                    <h3 className="text-sm font-semibold text-white font-display mb-1">{card.title}</h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">{card.desc}</p>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* ── FINAL CTA ── */}
+      <section className="py-24 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <FadeIn>
+            <div className="relative rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent backdrop-blur-sm p-12 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 blur-xl" />
+              <div className="relative z-10">
+                <Sparkles className="w-10 h-10 text-emerald-400 mx-auto mb-6" />
+                <h2 className="text-4xl md:text-5xl font-bold font-display mb-4">
+                  Ready to transform your<br />
+                  <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">community's future?</span>
+                </h2>
+                <p className="text-slate-400 text-lg mb-8 max-w-xl mx-auto">
+                  Join thousands of municipalities already making data-driven decisions with WasteWise+.
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
+                    onClick={() => navigate('/login')}
+                    className="group flex items-center gap-2 px-10 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold shadow-2xl shadow-emerald-500/40 hover:shadow-emerald-500/60 transition-shadow text-base">
+                    Get Started Free
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </motion.button>
+                  <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+                    onClick={() => navigate('/login')}
+                    className="px-10 py-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm text-slate-300 hover:text-white hover:border-white/20 transition-all text-base font-medium">
+                    Sign In
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="border-t border-white/5 py-8 px-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-600">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center">
+              <Leaf className="w-3 h-3 text-white" />
+            </div>
+            <span className="font-semibold text-slate-400 font-display">WasteWise+</span>
+          </div>
+          <p>© {new Date().getFullYear()} WasteWise+. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
   );
 }
