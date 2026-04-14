@@ -8,6 +8,6 @@ interface ProtectedPageProps {
 
 export default function ProtectedPage({ children }: ProtectedPageProps) {
   const user = getSession();
-  if (!user) return <Navigate to="/login" />;
+  if (!user) return <Navigate to="/auth" />;
   return <DashboardLayout user={user}>{children}</DashboardLayout>;
 }

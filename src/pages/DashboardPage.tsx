@@ -8,7 +8,7 @@ import ChampionDashboard from './ChampionDashboard';
 
 export default function DashboardPage() {
   const user = getSession();
-  if (!user) return <Navigate to="/login" />;
+  if (!user) return <Navigate to="/auth" />;
 
   const dashboards = {
     citizen: <CitizenDashboard user={user} />,
