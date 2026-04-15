@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Users, FileWarning, TrendingUp, Recycle, Download, Loader2, Brain, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { User } from '@/lib/auth';
-import { fetchComplaints, fetchStats, POLL_INTERVAL } from '@/lib/api';
+import { fetchComplaints, fetchStats, fetchAnalytics, POLL_INTERVAL } from '@/lib/api';
 import StatCard from '@/components/StatCard';
 import { Button } from '@/components/ui/button';
 
