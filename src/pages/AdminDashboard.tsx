@@ -15,7 +15,20 @@ export default function AdminDashboard({ user }: { user: User }) {
     refetchInterval: POLL_INTERVAL
   });
 
+  const { data: stats } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: fetchStats,
+    refetchInterval: POLL_INTERVAL
+  });
+
+  const { data: analytics } = useQuery({
+    queryKey: ['analytics'],
+    queryFn: fetchAnalytics,
+    refetchInterval: POLL_INTERVAL
+  });
+
   const resolved = complaints.filter((c: any) => c.status === 'resolved').length;
+  const pending = complaints.filter((c: any) => c.status === 'pending').length;
 
   const [retraining, setRetraining] = useState(false);
   const [modelStatus, setModelStatus] = useState({ version: '1.0.4', lastRetrain: '2 hours ago' });
@@ -64,7 +77,7 @@ export default function AdminDashboard({ user }: { user: User }) {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-2xl p-6 shadow-card">
           <h3 className="font-display font-semibold mb-4">Monthly Waste Collection (tons)</h3>
           <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={[]}>
+            <BarChart data={analytics?.monthly || []}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
               <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
@@ -80,7 +93,10 @@ export default function AdminDashboard({ user }: { user: User }) {
           <h3 className="font-display font-semibold mb-4">Waste Distribution</h3>
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
-              <Pie data={[]} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}>
+              <Pie data={analytics?.distribution || []} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}>
+                {(analytics?.distribution || []).map((entry: any, index: number) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
               </Pie>
               <Tooltip />
             </PieChart>
