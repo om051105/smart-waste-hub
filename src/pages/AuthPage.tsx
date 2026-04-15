@@ -61,17 +61,17 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050c0a] text-white flex">
+    <div className="min-h-screen text-white flex" style={{ backgroundColor: '#071e14', backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(52,211,153,0.08) 1px, transparent 0)', backgroundSize: '32px 32px' }}>
       {/* ── LEFT PANEL ── */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#0a1a14] to-[#0d1f17] items-center justify-center p-16">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#0b2a1b] to-[#0e3524] items-center justify-center p-16">
         {/* bg glow blobs */}
-        <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-emerald-500/15 blur-[80px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full bg-teal-500/10 blur-[80px]" />
+        <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-emerald-500/25 blur-[80px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full bg-teal-500/20 blur-[80px]" />
 
         {/* grid dots pattern */}
         <div className="absolute inset-0 opacity-20"
           style={{
-            backgroundImage: 'radial-gradient(circle, rgba(52,211,153,0.4) 1px, transparent 1px)',
+            backgroundImage: 'radial-gradient(circle, rgba(52,211,153,0.6) 1px, transparent 1px)',
             backgroundSize: '32px 32px',
           }} />
 

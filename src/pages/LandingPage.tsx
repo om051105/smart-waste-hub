@@ -102,7 +102,7 @@ function ParticleCanvas() {
         if (p.y < 0 || p.y > H) p.vy *= -1;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(52,211,153,0.55)';
+        ctx.fillStyle = 'rgba(74,222,168,0.6)';
         ctx.fill();
       });
       pts.forEach((a, i) => pts.slice(i + 1).forEach(b => {
@@ -110,7 +110,7 @@ function ParticleCanvas() {
         if (d < 120) {
           ctx.beginPath();
           ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
-          ctx.strokeStyle = `rgba(52,211,153,${0.18 * (1 - d / 120)})`;
+          ctx.strokeStyle = `rgba(74,222,168,${0.22 * (1 - d / 120)})`;
           ctx.stroke();
         }
       }));
@@ -150,10 +150,16 @@ export default function LandingPage() {
   const navGlass = scrollY > 40;
 
   return (
-    <div className="min-h-screen bg-[#050c0a] text-white overflow-x-hidden">
+    <div className="min-h-screen text-white overflow-x-hidden"
+      style={{
+        backgroundColor: '#071e14',
+        backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(52,211,153,0.08) 1px, transparent 0)',
+        backgroundSize: '32px 32px',
+        backgroundAttachment: 'fixed',
+      }}>
 
       {/* ── NAVBAR ── */}
-      <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${navGlass ? 'backdrop-blur-xl bg-[#050c0a]/80 border-b border-white/5 shadow-lg' : ''}`}>
+      <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${navGlass ? 'backdrop-blur-xl bg-[#0a2a1c]/85 border-b border-emerald-500/10 shadow-lg shadow-emerald-900/20' : ''}`}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center">
@@ -193,7 +199,7 @@ export default function LandingPage() {
         <AnimatePresence>
           {menuOpen && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-[#050c0a]/95 backdrop-blur-xl border-b border-white/5 px-6 py-4 space-y-3">
+              className="md:hidden bg-[#0a2a1c]/95 backdrop-blur-xl border-b border-emerald-500/10 px-6 py-4 space-y-3">
               {['Features', 'How It Works', 'Impact'].map(s => (
                 <a key={s} onClick={() => { setMenuOpen(false); document.getElementById(s.toLowerCase().replace(/ /g, '-'))?.scrollIntoView({ behavior: 'smooth' }); }}
                   className="block text-sm text-slate-400 hover:text-white cursor-pointer">{s}</a>
@@ -211,8 +217,8 @@ export default function LandingPage() {
         <ParticleCanvas />
 
         {/* radial glow */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
-        <div className="absolute top-1/2 left-1/4 w-[400px] h-[400px] rounded-full bg-teal-500/8 blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-emerald-500/20 blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/4 w-[500px] h-[500px] rounded-full bg-teal-500/15 blur-[110px] pointer-events-none" />
 
         <div className="relative z-10 text-center max-w-4xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
@@ -262,7 +268,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── STATS BAND ── */}
-      <section className="border-y border-white/5 bg-white/2 py-12 px-6">
+      <section className="border-y border-emerald-500/10 bg-emerald-950/30 py-12 px-6">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
           {STATS.map((s, i) => (
             <FadeIn key={s.label} delay={i * 0.1} direction="up" className="text-center">
@@ -309,7 +315,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section id="how-it-works" className="py-24 px-6 bg-gradient-to-b from-transparent to-white/2">
+      <section id="how-it-works" className="py-24 px-6 bg-gradient-to-b from-transparent via-emerald-950/20 to-emerald-900/15">
         <div className="max-w-6xl mx-auto">
           <FadeIn className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-400 text-xs font-medium mb-4">
@@ -405,8 +411,8 @@ export default function LandingPage() {
       <section className="py-24 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <FadeIn>
-            <div className="relative rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent backdrop-blur-sm p-12 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 blur-xl" />
+            <div className="relative rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-emerald-950/30 backdrop-blur-sm p-12 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 blur-xl" />
               <div className="relative z-10">
                 <Sparkles className="w-10 h-10 text-emerald-400 mx-auto mb-6" />
                 <h2 className="text-4xl md:text-5xl font-bold font-display mb-4">
@@ -436,13 +442,13 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="border-t border-white/5 py-8 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-600">
+      <footer className="border-t border-emerald-500/10 py-8 px-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-emerald-300/30">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center">
               <Leaf className="w-3 h-3 text-white" />
             </div>
-            <span className="font-semibold text-slate-400 font-display">WasteWise+</span>
+            <span className="font-semibold text-emerald-200/50 font-display">WasteWise+</span>
           </div>
           <p>© {new Date().getFullYear()} WasteWise+. All rights reserved.</p>
         </div>

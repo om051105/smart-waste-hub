@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 
-/* ─── Particle Canvas (same as landing page) ─────────────── */
+/* ─── Particle Canvas ─────────────────────────────────────── */
 function ParticleCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
@@ -30,7 +30,7 @@ function ParticleCanvas() {
         if (p.y < 0 || p.y > H) p.vy *= -1;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(52,211,153,0.45)';
+        ctx.fillStyle = 'rgba(74,222,168,0.6)';
         ctx.fill();
       });
       pts.forEach((a, i) => pts.slice(i + 1).forEach(b => {
@@ -38,7 +38,7 @@ function ParticleCanvas() {
         if (d < 120) {
           ctx.beginPath();
           ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
-          ctx.strokeStyle = `rgba(52,211,153,${0.12 * (1 - d / 120)})`;
+          ctx.strokeStyle = `rgba(74,222,168,${0.18 * (1 - d / 120)})`;
           ctx.stroke();
         }
       }));
@@ -57,7 +57,7 @@ function FloatingIcon({ icon: Icon, delay, x, y, size = 20 }: { icon: any; delay
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0 }}
-      animate={{ opacity: 0.15, scale: 1 }}
+      animate={{ opacity: 0.2, scale: 1 }}
       transition={{ delay, duration: 0.8, ease: 'easeOut' }}
       className="absolute pointer-events-none"
       style={{ left: x, top: y }}
@@ -66,7 +66,7 @@ function FloatingIcon({ icon: Icon, delay, x, y, size = 20 }: { icon: any; delay
         animate={{ y: [0, -12, 0], rotate: [0, 5, -5, 0] }}
         transition={{ repeat: Infinity, duration: 5 + delay, ease: 'easeInOut' }}
       >
-        <Icon size={size} className="text-emerald-400" />
+        <Icon size={size} className="text-emerald-300" />
       </motion.div>
     </motion.div>
   );
@@ -100,8 +100,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [role, setRole] = useState<UserRole>('citizen');
   const [area, setArea] = useState('');
+  const [role, setRole] = useState<UserRole>('citizen');
   const [showPw, setShowPw] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -109,21 +109,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-<<<<<<< HEAD
     setIsLoading(true);
-    try {
-      if (isRegister) {
-        const user = await register(name, email, password, role);
-        if (!user) { toast({ title: 'Email already exists or error', variant: 'destructive' }); return; }
-        navigate('/dashboard');
-      } else {
-        const user = await login(email, password);
-        if (!user) { toast({ title: 'Invalid credentials or error', variant: 'destructive' }); return; }
-        navigate('/dashboard');
-      }
-    } finally {
-      setIsLoading(false);
-=======
     try {
       if (isRegister) {
         await register(name, email, password, role, area);
@@ -133,17 +119,18 @@ export default function LoginPage() {
         navigate('/dashboard');
       }
     } catch (err: any) {
-      toast({ 
+      toast({
         title: isRegister ? 'Registration Failed' : 'Login Failed',
         description: err.message || 'An unexpected error occurred. Please try again.',
-        variant: 'destructive' 
+        variant: 'destructive',
       });
->>>>>>> 1d45ed1369f66831b2587aaae97b0c1a0c771f73
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#050c0a] text-white overflow-hidden relative">
+    <div className="min-h-screen bg-[#071e14] text-white overflow-hidden relative">
 
       {/* ── Background image ── */}
       <div
@@ -155,17 +142,25 @@ export default function LoginPage() {
           backgroundRepeat: 'no-repeat',
         }}
       />
-      {/* Dark overlay on the image */}
-      <div className="absolute inset-0 z-0 bg-[#050c0a]/75" />
+      {/* Green overlay with dot texture */}
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundColor: 'rgba(7, 30, 20, 0.72)',
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(52,211,153,0.12) 1px, transparent 0)',
+          backgroundSize: '32px 32px',
+        }}
+      />
 
       {/* ── Particle canvas ── */}
       <div className="absolute inset-0 z-[1]">
         <ParticleCanvas />
       </div>
 
-      {/* ── Radial glows (matching landing page) ── */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-emerald-500/8 blur-[120px] pointer-events-none z-[1]" />
-      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-teal-500/6 blur-[100px] pointer-events-none z-[1]" />
+      {/* ── Radial glows ── */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-emerald-500/15 blur-[120px] pointer-events-none z-[1]" />
+      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-teal-500/[0.12] blur-[100px] pointer-events-none z-[1]" />
+      <div className="absolute top-2/3 left-1/4 w-[350px] h-[350px] rounded-full bg-green-500/10 blur-[100px] pointer-events-none z-[1]" />
 
       {/* ── Floating decorative icons ── */}
       <FloatingIcon icon={Recycle} delay={0.5} x="8%" y="20%" size={28} />
@@ -187,7 +182,6 @@ export default function LoginPage() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center">
               <Leaf className="w-4 h-4 text-white" />
             </div>
-<<<<<<< HEAD
             <span className="font-bold text-lg tracking-tight font-display">
               WasteWise<span className="text-emerald-400">+</span>
             </span>
@@ -196,7 +190,7 @@ export default function LoginPage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-sm text-emerald-200/60 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Home
@@ -217,11 +211,11 @@ export default function LoginPage() {
               >
 
                 {/* ── Glassmorphism card ── */}
-                <div className="relative rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-8 md:p-10 shadow-2xl shadow-black/20 overflow-hidden">
+                <div className="relative rounded-3xl border border-emerald-500/15 bg-emerald-950/40 backdrop-blur-xl p-8 md:p-10 shadow-2xl shadow-emerald-900/30 overflow-hidden">
 
                   {/* Inner glow */}
-                  <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-emerald-500/10 blur-[60px] pointer-events-none" />
-                  <div className="absolute -bottom-16 -left-16 w-32 h-32 rounded-full bg-teal-500/10 blur-[50px] pointer-events-none" />
+                  <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-emerald-500/15 blur-[60px] pointer-events-none" />
+                  <div className="absolute -bottom-16 -left-16 w-32 h-32 rounded-full bg-teal-500/15 blur-[50px] pointer-events-none" />
 
                   <motion.div
                     variants={containerVariants}
@@ -231,7 +225,7 @@ export default function LoginPage() {
                   >
                     {/* Badge */}
                     <motion.div variants={itemVariants}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-medium mb-6"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 text-xs font-medium mb-6"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
                       {isRegister ? 'Join the Platform' : 'Welcome Back'}
@@ -242,13 +236,13 @@ export default function LoginPage() {
                       className="text-3xl md:text-4xl font-bold font-display mb-2"
                     >
                       {isRegister ? (
-                        <>Create your <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">account</span></>
+                        <>Create your <span className="bg-gradient-to-r from-emerald-300 via-teal-300 to-green-300 bg-clip-text text-transparent">account</span></>
                       ) : (
-                        <>Sign in to <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">WasteWise+</span></>
+                        <>Sign in to <span className="bg-gradient-to-r from-emerald-300 via-teal-300 to-green-300 bg-clip-text text-transparent">WasteWise+</span></>
                       )}
                     </motion.h1>
 
-                    <motion.p variants={itemVariants} className="text-slate-400 mb-8">
+                    <motion.p variants={itemVariants} className="text-emerald-200/50 mb-8">
                       {isRegister ? 'Join thousands building greener communities.' : 'Access your dashboard and make an impact.'}
                     </motion.p>
 
@@ -264,13 +258,13 @@ export default function LoginPage() {
                             exit={{ opacity: 0, height: 0 }}
                             transition={{ duration: 0.3 }}
                           >
-                            <Label className="text-sm text-slate-300 font-medium">Full Name</Label>
+                            <Label className="text-sm text-emerald-100/70 font-medium">Full Name</Label>
                             <Input
                               value={name}
                               onChange={e => setName(e.target.value)}
                               placeholder="Your name"
                               required
-                              className="mt-1.5 h-11 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl transition-all"
+                              className="mt-1.5 h-11 bg-emerald-950/50 border-emerald-500/20 text-white placeholder:text-emerald-200/30 focus:border-emerald-400/50 focus:ring-emerald-400/20 rounded-xl transition-all"
                             />
                           </motion.div>
                         )}
@@ -278,20 +272,20 @@ export default function LoginPage() {
 
                       {/* Email */}
                       <div>
-                        <Label className="text-sm text-slate-300 font-medium">Email</Label>
+                        <Label className="text-sm text-emerald-100/70 font-medium">Email</Label>
                         <Input
                           type="email"
                           value={email}
                           onChange={e => setEmail(e.target.value)}
                           placeholder="you@example.com"
                           required
-                          className="mt-1.5 h-11 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl transition-all"
+                          className="mt-1.5 h-11 bg-emerald-950/50 border-emerald-500/20 text-white placeholder:text-emerald-200/30 focus:border-emerald-400/50 focus:ring-emerald-400/20 rounded-xl transition-all"
                         />
                       </div>
 
                       {/* Password */}
                       <div>
-                        <Label className="text-sm text-slate-300 font-medium">Password</Label>
+                        <Label className="text-sm text-emerald-100/70 font-medium">Password</Label>
                         <div className="relative mt-1.5">
                           <Input
                             type={showPw ? 'text' : 'password'}
@@ -299,12 +293,12 @@ export default function LoginPage() {
                             onChange={e => setPassword(e.target.value)}
                             placeholder="••••••••"
                             required
-                            className="h-11 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 rounded-xl transition-all pr-11"
+                            className="h-11 bg-emerald-950/50 border-emerald-500/20 text-white placeholder:text-emerald-200/30 focus:border-emerald-400/50 focus:ring-emerald-400/20 rounded-xl transition-all pr-11"
                           />
                           <button
                             type="button"
                             onClick={() => setShowPw(!showPw)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300/40 hover:text-emerald-200 transition-colors"
                           >
                             {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
@@ -320,7 +314,7 @@ export default function LoginPage() {
                             exit={{ opacity: 0, height: 0 }}
                             transition={{ duration: 0.3 }}
                           >
-                            <Label className="text-sm text-slate-300 font-medium mb-2 block">Select Your Role</Label>
+                            <Label className="text-sm text-emerald-100/70 font-medium mb-2 block">Select Your Role</Label>
                             <div className="grid grid-cols-2 gap-2.5">
                               {ROLES.map((r) => {
                                 const Icon = r.icon;
@@ -335,17 +329,17 @@ export default function LoginPage() {
                                     className={`relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all duration-200 ${
                                       isActive
                                         ? `bg-gradient-to-br ${r.color} ${r.border} shadow-lg`
-                                        : 'border-white/8 bg-white/[0.03] hover:border-white/15 hover:bg-white/[0.06]'
+                                        : 'border-emerald-500/10 bg-emerald-950/30 hover:border-emerald-500/20 hover:bg-emerald-900/30'
                                     }`}
                                   >
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                                      isActive ? `bg-gradient-to-br ${r.color}` : 'bg-white/5'
+                                      isActive ? `bg-gradient-to-br ${r.color}` : 'bg-emerald-900/50'
                                     }`}>
-                                      <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-300' : 'text-slate-500'}`} />
+                                      <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-300' : 'text-emerald-400/40'}`} />
                                     </div>
                                     <div className="min-w-0">
-                                      <div className={`text-xs font-semibold ${isActive ? 'text-white' : 'text-slate-400'}`}>{r.label}</div>
-                                      <div className={`text-[10px] ${isActive ? 'text-slate-300' : 'text-slate-600'}`}>{r.desc}</div>
+                                      <div className={`text-xs font-semibold ${isActive ? 'text-white' : 'text-emerald-200/60'}`}>{r.label}</div>
+                                      <div className={`text-[10px] ${isActive ? 'text-emerald-100/60' : 'text-emerald-300/30'}`}>{r.desc}</div>
                                     </div>
                                     {isActive && (
                                       <motion.div
@@ -386,7 +380,7 @@ export default function LoginPage() {
 
                     {/* ── Toggle link ── */}
                     <motion.div variants={itemVariants} className="mt-6 text-center">
-                      <span className="text-sm text-slate-500">
+                      <span className="text-sm text-emerald-200/40">
                         {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
                       </span>
                       <button
@@ -398,35 +392,6 @@ export default function LoginPage() {
                     </motion.div>
 
                   </motion.div>
-=======
-            <div>
-              <Label>Password</Label>
-              <div className="relative mt-1">
-                <Input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required />
-                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-            {isRegister && (
-              <div>
-                <Label>Location / Area</Label>
-                <Input value={area} onChange={e => setArea(e.target.value)} placeholder="e.g. North Town, South District" required className="mt-1" />
-              </div>
-            )}
-            {isRegister && (
-              <div>
-                <Label>Role</Label>
-                <div className="grid grid-cols-2 gap-2 mt-1">
-                  {roles.map(r => (
-                    <button key={r.value} type="button" onClick={() => setRole(r.value)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium border transition-all ${
-                        role === r.value ? 'border-primary bg-secondary text-primary' : 'border-border text-muted-foreground hover:border-primary/50'
-                      }`}>
-                      {r.label}
-                    </button>
-                  ))}
->>>>>>> 1d45ed1369f66831b2587aaae97b0c1a0c771f73
                 </div>
 
                 {/* ── Trust indicators beneath card ── */}
@@ -434,7 +399,7 @@ export default function LoginPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.6, duration: 0.5 }}
-                  className="mt-6 flex items-center justify-center gap-6 text-xs text-slate-600"
+                  className="mt-6 flex items-center justify-center gap-6 text-xs text-emerald-300/30"
                 >
                   {['End-to-end encrypted', 'GDPR Compliant', 'SOC 2 Ready'].map((t) => (
                     <div key={t} className="flex items-center gap-1.5">
@@ -455,7 +420,7 @@ export default function LoginPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="px-6 py-4 text-center text-xs text-slate-600"
+          className="px-6 py-4 text-center text-xs text-emerald-300/30"
         >
           © {new Date().getFullYear()} WasteWise+. All rights reserved.
         </motion.footer>
