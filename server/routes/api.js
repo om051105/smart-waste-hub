@@ -8,7 +8,10 @@ const router = express.Router();
 
 // --- Auth Routes ---
 router.post('/auth/login', async (req, res) => {
-  const { email, password } = req.body;
+  let { email, password } = req.body;
+  if (email) email = email.trim().toLowerCase();
+  if (password) password = password.trim();
+  
   try {
     const user = await User.findOne({ email, password });
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
@@ -20,7 +23,10 @@ router.post('/auth/login', async (req, res) => {
 });
 
 router.post('/auth/register', async (req, res) => {
-  const { name, email, password, role, area } = req.body;
+  let { name, email, password, role, area } = req.body;
+  if (email) email = email.trim().toLowerCase();
+  if (password) password = password.trim();
+
   try {
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ error: 'Email already exists' });
