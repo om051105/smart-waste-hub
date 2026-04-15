@@ -5,49 +5,79 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import apiRoutes from './routes/api.js';
+import User from './models/User.js';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/smart-waste-hub';
 
-app.use(cors());
-app.use(express.json());
+// ── Middleware ────────────────────────────────────────────────────────────────
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+app.use(express.json({ limit: '5mb' }));
 
-// Fix for __dirname in ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Routes
-app.use('/api', apiRoutes);
-
-// Serve Frontend in Production
-app.use(express.static(path.join(__dirname, '../dist')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
+// ── API Routes ────────────────────────────────────────────────────────────────
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    res.status(500).json({ error: 'Database connection failed' });
+  }
 });
 
-// Connect to DB and Start Server
-mongoose.connect(MONGO_URI)
-  .then(async () => {
-    console.log('✅ Connected to MongoDB');
-    
-    // Import models
-    const { default: User } = await import('./models/User.js');
-    const { default: Facility } = await import('./models/Facility.js');
-    const { default: WasteCollection } = await import('./models/WasteCollection.js');
-    const { default: Complaint } = await import('./models/Complaint.js');
+app.use('/api', apiRoutes);
 
-    // We no longer seed demo data automatically.
-    // The database stays clean for real user registrations.
+// ── Health Check ──────────────────────────────────────────────────────────────
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' });
+});
 
-
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error('❌ Database connection error:', err.message);
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../dist')));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
   });
+}
+
+// ── MongoDB Connection ────────────────────────────────────────────────────────
+let isConnected = false;
+
+export const connectDB = async () => {
+  if (isConnected) return;
+  const uri = process.env.MONGO_URI;
+  if (!uri) throw new Error('MONGO_URI is not defined in environment variables');
+
+  try {
+    // Fail fast in 5 seconds to prevent Vercel 10s lambda timeouts
+    await mongoose.connect(uri, { 
+      dbName: 'smart-waste-hub',
+      serverSelectionTimeoutMS: 5000, 
+    });
+    isConnected = true;
+    console.log('✅ MongoDB Atlas connected');
+  } catch (err) {
+    console.error('❌ MongoDB connection failed:', err.message);
+    throw err;
+  }
+};
+
+
+
+const PORT = process.env.PORT || 5000;
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  connectDB().then(() => {
+    app.listen(PORT, () => console.log(`🚀 Server running → http://localhost:${PORT}`));
+  }).catch(err => {
+    console.log(`⚠️ Local server started without DB: ${err.message}`);
+    app.listen(PORT, () => console.log(`🚀 Server running (DB Offline) → http://localhost:${PORT}`));
+  });
+}
+
+export default app;

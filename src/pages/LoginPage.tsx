@@ -101,6 +101,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState<UserRole>('citizen');
+  const [area, setArea] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -108,6 +109,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+<<<<<<< HEAD
     setIsLoading(true);
     try {
       if (isRegister) {
@@ -121,6 +123,22 @@ export default function LoginPage() {
       }
     } finally {
       setIsLoading(false);
+=======
+    try {
+      if (isRegister) {
+        await register(name, email, password, role, area);
+        navigate('/dashboard');
+      } else {
+        await login(email, password);
+        navigate('/dashboard');
+      }
+    } catch (err: any) {
+      toast({ 
+        title: isRegister ? 'Registration Failed' : 'Login Failed',
+        description: err.message || 'An unexpected error occurred. Please try again.',
+        variant: 'destructive' 
+      });
+>>>>>>> 1d45ed1369f66831b2587aaae97b0c1a0c771f73
     }
   };
 
@@ -169,6 +187,7 @@ export default function LoginPage() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center">
               <Leaf className="w-4 h-4 text-white" />
             </div>
+<<<<<<< HEAD
             <span className="font-bold text-lg tracking-tight font-display">
               WasteWise<span className="text-emerald-400">+</span>
             </span>
@@ -379,6 +398,35 @@ export default function LoginPage() {
                     </motion.div>
 
                   </motion.div>
+=======
+            <div>
+              <Label>Password</Label>
+              <div className="relative mt-1">
+                <Input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required />
+                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+            {isRegister && (
+              <div>
+                <Label>Location / Area</Label>
+                <Input value={area} onChange={e => setArea(e.target.value)} placeholder="e.g. North Town, South District" required className="mt-1" />
+              </div>
+            )}
+            {isRegister && (
+              <div>
+                <Label>Role</Label>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  {roles.map(r => (
+                    <button key={r.value} type="button" onClick={() => setRole(r.value)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium border transition-all ${
+                        role === r.value ? 'border-primary bg-secondary text-primary' : 'border-border text-muted-foreground hover:border-primary/50'
+                      }`}>
+                      {r.label}
+                    </button>
+                  ))}
+>>>>>>> 1d45ed1369f66831b2587aaae97b0c1a0c771f73
                 </div>
 
                 {/* ── Trust indicators beneath card ── */}

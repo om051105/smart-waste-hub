@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "framework": "vite",
+  "name": "smart-waste-hub",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/((?!assets/|tfjs_model/|.*\\..*).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

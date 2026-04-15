@@ -22,32 +22,56 @@ export async function login(email: string, password: string): Promise<User | nul
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    if (!res.ok) return null;
-    const user = await res.json();
+    
+    // Get text body first to handle cases where it is not JSON (like Vercel 500/404 pages)
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch (e) { data = { error: 'Unknown server error' }; }
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Login failed');
+    }
+    
+    const user = data;
     user.id = user._id; // Map MongoDB _id to id for frontend compatibility
     localStorage.setItem(SESSION_KEY, JSON.stringify(user));
     return user;
-  } catch (err) {
+  } catch (err: any) {
     console.error('Login error:', err);
-    return null;
+    throw new Error(err.message || 'Server connection failed');
   }
 }
 
-export async function register(name: string, email: string, password: string, role: UserRole): Promise<User | null> {
+export async function register(name: string, email: string, password: string, role: UserRole, area: string): Promise<User | null> {
   try {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, role })
+      body: JSON.stringify({ name, email, password, role, area })
     });
-    if (!res.ok) return null;
-    const user = await res.json();
+    
+    const text = await res.text();
+    let data;
+    try { 
+      data = JSON.parse(text); 
+    } catch (e) { 
+      // This means Vercel sent back HTML (like a 500 or 504 error page). 
+      // Let's grab the first line of the HTML page to know what Vercel crashed on.
+      const rawHtmlMsg = text.replace(/<[^>]*>?/gm, '').split('\n').filter(l => l.trim().length > 0)[0] || 'Unknown HTML error';
+      data = { error: `Vercel Infrastructure Error: ${rawHtmlMsg.substring(0, 50)}...` }; 
+    }
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Registration failed');
+    }
+    
+    const user = data;
     user.id = user._id;
     localStorage.setItem(SESSION_KEY, JSON.stringify(user));
     return user;
-  } catch (err) {
+  } catch (err: any) {
     console.error('Register error:', err);
-    return null;
+    throw new Error(err.message || 'Connection lost. Please refresh and try again.');
   }
 }
 
