@@ -48,7 +48,8 @@ export default function DashboardLayout({ user, children }: { user: User; childr
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const menu = roleMenus[user.role];
+  const normalizedRole = (user?.role as UserRole) || 'citizen';
+  const menu = roleMenus[normalizedRole] || roleMenus['citizen'];
 
   const handleLogout = () => {
     logout();
@@ -96,7 +97,7 @@ export default function DashboardLayout({ user, children }: { user: User; childr
             <div className="min-w-0">
               <p className="text-sm font-medium text-sidebar-foreground truncate">{user.name}</p>
               <p className="text-xs text-sidebar-foreground/60 flex items-center gap-1">
-                <Shield className="w-3 h-3" /> {roleLabels[user.role]}
+                <Shield className="w-3 h-3" /> {roleLabels[normalizedRole]}
               </p>
             </div>
           </div>
