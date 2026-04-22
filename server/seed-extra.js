@@ -2,13 +2,20 @@
 // Usage: node server/seed-extra.js
 
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 import WasteCollection from './models/WasteCollection.js';
 import Complaint from './models/Complaint.js';
 
-const MONGO_URI = 'mongodb://127.0.0.1:27017/smart-waste-hub';
+dotenv.config();
+
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  console.error('❌ MONGO_URI not found in .env');
+  process.exit(1);
+}
 
 await mongoose.connect(MONGO_URI);
-console.log('✅ Connected');
+console.log('✅ Connected to MongoDB Atlas');
 
 // Worker Mike's ID (seeded earlier)
 const workerMikeId = new mongoose.Types.ObjectId('60d5ec49f1b2a945d8b85103');
