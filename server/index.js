@@ -5,9 +5,23 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import apiRoutes from './routes/api.js';
-import User from './models/User.js';
 
 dotenv.config();
+
+// ── MongoDB Connection ─────────────────────────────────────────────────────
+let isConnected = false;
+
+export const connectDB = async () => {
+  if (isConnected && mongoose.connection.readyState === 1) return;
+  const uri = process.env.MONGO_URI;
+  if (!uri) throw new Error('MONGO_URI is not defined in environment variables');
+  await mongoose.connect(uri, {
+    dbName: 'smart-waste-hub',
+    serverSelectionTimeoutMS: 8000,
+  });
+  isConnected = true;
+  console.log('✅ MongoDB Atlas connected');
+};
 
 const app = express();
 
@@ -46,27 +60,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// ── MongoDB Connection ────────────────────────────────────────────────────────
-let isConnected = false;
 
-export const connectDB = async () => {
-  if (isConnected) return;
-  const uri = process.env.MONGO_URI;
-  if (!uri) throw new Error('MONGO_URI is not defined in environment variables');
-
-  try {
-    // Fail fast in 5 seconds to prevent Vercel 10s lambda timeouts
-    await mongoose.connect(uri, { 
-      dbName: 'smart-waste-hub',
-      serverSelectionTimeoutMS: 5000, 
-    });
-    isConnected = true;
-    console.log('✅ MongoDB Atlas connected');
-  } catch (err) {
-    console.error('❌ MongoDB connection failed:', err.message);
-    throw err;
-  }
-};
 
 
 
