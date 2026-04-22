@@ -12,6 +12,45 @@ router.post('/auth/login', async (req, res) => {
   if (email) email = email.trim().toLowerCase();
   if (password) password = password.trim();
   
+  // ── HARDCODED BYPASS FOR TESTING (DB OFFLINE) ──────────────────
+  if (email === 'admin@wastewise.com' && password === 'admin123') {
+    return res.json({
+      _id: 'admin_bypass_id',
+      id: 'admin_bypass_id',
+      name: 'System Administrator',
+      email: 'admin@wastewise.com',
+      role: 'admin',
+      complianceScore: 1000,
+      rewardPoints: 500,
+      createdAt: new Date().toISOString()
+    });
+  }
+  if (email === 'citizen@wastewise.com' && password === 'citizen123') {
+    return res.json({
+      _id: 'citizen_bypass_id',
+      id: 'citizen_bypass_id',
+      name: 'Jane Citizen',
+      email: 'citizen@wastewise.com',
+      role: 'citizen',
+      complianceScore: 85,
+      rewardPoints: 120,
+      createdAt: new Date().toISOString()
+    });
+  }
+  if (email === 'worker@wastewise.com' && password === 'worker123') {
+    return res.json({
+      _id: 'worker_bypass_id',
+      id: 'worker_bypass_id',
+      name: 'Mike Worker',
+      email: 'worker@wastewise.com',
+      role: 'worker',
+      complianceScore: 150,
+      rewardPoints: 0,
+      createdAt: new Date().toISOString()
+    });
+  }
+  // ────────────────────────────────────────────────────────────────
+
   try {
     const user = await User.findOne({ email, password });
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
