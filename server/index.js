@@ -8,7 +8,7 @@ import apiRoutes from './routes/api.js';
 
 dotenv.config();
 
-// ── MongoDB Connection ─────────────────────────────────────────────────────
+// ── MongoDB Connection ──────────────────────────────────────────────────────
 let isConnected = false;
 
 export const connectDB = async () => {
@@ -17,15 +17,17 @@ export const connectDB = async () => {
   if (!uri) throw new Error('MONGO_URI is not defined in environment variables');
   await mongoose.connect(uri, {
     dbName: 'smart-waste-hub',
-    serverSelectionTimeoutMS: 8000,
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
   });
   isConnected = true;
   console.log('✅ MongoDB Atlas connected');
 };
 
+// ── Express App ────────────────────────────────────────────────────────────
 const app = express();
 
-// ── Middleware ────────────────────────────────────────────────────────────────
+// ── Middleware ────────────────────────────────────────────────────────────
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -36,23 +38,31 @@ app.use(express.json({ limit: '5mb' }));
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ── API Routes ────────────────────────────────────────────────────────────────
+// ── DB Middleware: connect before every request (serverless-safe) ──────────
 app.use(async (req, res, next) => {
   try {
     await connectDB();
     next();
   } catch (err) {
-    res.status(500).json({ error: 'Database connection failed' });
+    console.error('❌ DB connection error:', err.message);
+    res.status(500).json({ error: 'Database connection failed', details: err.message });
   }
 });
 
-app.use('/api', apiRoutes);
-
-// ── Health Check ──────────────────────────────────────────────────────────────
+// ── Health Check ──────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' });
+  res.json({
+    status: 'ok',
+    db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    env: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString(),
+  });
 });
 
+// ── API Routes ────────────────────────────────────────────────────────────
+app.use('/api', apiRoutes);
+
+// ── Serve React Frontend (Production) ────────────────────────────────────
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../dist')));
   app.get('*', (req, res) => {
@@ -60,18 +70,17 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-
-
-
-
+// ── Start Local Dev Server ────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-  connectDB().then(() => {
-    app.listen(PORT, () => console.log(`🚀 Server running → http://localhost:${PORT}`));
-  }).catch(err => {
-    console.log(`⚠️ Local server started without DB: ${err.message}`);
-    app.listen(PORT, () => console.log(`🚀 Server running (DB Offline) → http://localhost:${PORT}`));
-  });
+  connectDB()
+    .then(() => {
+      app.listen(PORT, () => console.log(`🚀 Server running → http://localhost:${PORT}`));
+    })
+    .catch(err => {
+      console.error(`⚠️  DB connect failed: ${err.message}`);
+      app.listen(PORT, () => console.log(`🚀 Server running (DB offline) → http://localhost:${PORT}`));
+    });
 }
 
 export default app;
