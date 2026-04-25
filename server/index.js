@@ -1,33 +1,26 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { initFirebase } from './firebase.js';
 import apiRoutes from './routes/api.js';
 
 dotenv.config();
 
-// ── MongoDB Connection ──────────────────────────────────────────────────────
-let isConnected = false;
+// ── Firebase Init ──────────────────────────────────────────────────────────
+let firebaseReady = false;
 
 export const connectDB = async () => {
-  if (isConnected && mongoose.connection.readyState === 1) return;
-  const uri = process.env.MONGO_URI;
-  if (!uri) throw new Error('MONGO_URI is not defined in environment variables');
-  await mongoose.connect(uri, {
-    dbName: 'smart-waste-hub',
-    serverSelectionTimeoutMS: 10000,
-    socketTimeoutMS: 45000,
-  });
-  isConnected = true;
-  console.log('✅ MongoDB Atlas connected');
+  if (firebaseReady) return;
+  initFirebase();
+  firebaseReady = true;
 };
 
 // ── Express App ────────────────────────────────────────────────────────────
 const app = express();
 
-// ── Middleware ────────────────────────────────────────────────────────────
+// ── Middleware ─────────────────────────────────────────────────────────────
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -38,28 +31,28 @@ app.use(express.json({ limit: '5mb' }));
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ── DB Middleware: connect before every request (serverless-safe) ──────────
+// ── DB Middleware: try to connect but NEVER block requests ─────────────────
 app.use(async (req, res, next) => {
   try {
     await connectDB();
-    next();
   } catch (err) {
-    console.error('❌ DB connection error:', err.message);
-    res.status(500).json({ error: 'Database connection failed', details: err.message });
+    console.error('❌ Firebase init error:', err.message);
+    req.dbError = err.message;
   }
+  next();
 });
 
-// ── Health Check ──────────────────────────────────────────────────────────
+// ── Health Check ───────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    db: firebaseReady ? 'firebase-connected' : 'disconnected',
     env: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString(),
   });
 });
 
-// ── API Routes ────────────────────────────────────────────────────────────
+// ── API Routes ─────────────────────────────────────────────────────────────
 app.use('/api', apiRoutes);
 
 // ── Serve React Frontend (Production) ────────────────────────────────────
@@ -78,8 +71,8 @@ if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
       app.listen(PORT, () => console.log(`🚀 Server running → http://localhost:${PORT}`));
     })
     .catch(err => {
-      console.error(`⚠️  DB connect failed: ${err.message}`);
-      app.listen(PORT, () => console.log(`🚀 Server running (DB offline) → http://localhost:${PORT}`));
+      console.error(`⚠️  Firebase init failed: ${err.message}`);
+      app.listen(PORT, () => console.log(`🚀 Server running (Firebase offline) → http://localhost:${PORT}`));
     });
 }
 

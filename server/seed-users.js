@@ -1,3 +1,6 @@
+// Run this once to seed users & facilities into smart-waste-hub database
+// Usage: node server/seed-users.js
+
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import User from './models/User.js';
@@ -6,11 +9,16 @@ import Facility from './models/Facility.js';
 dotenv.config();
 
 const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  console.error('❌ MONGO_URI not found in .env');
+  process.exit(1);
+}
 
-await mongoose.connect(MONGO_URI);
-console.log('✅ Connected to MongoDB Atlas');
+// Explicitly force the correct database — NEVER use 'test'
+await mongoose.connect(MONGO_URI, { dbName: 'smart-waste-hub' });
+console.log('✅ Connected to smart-waste-hub database');
 
-// Seed Users
+// ── Seed Demo Users ─────────────────────────────────────────────────────────
 const users = [
   {
     _id: new mongoose.Types.ObjectId('60d5ec49f1b2a945d8b85101'),
@@ -45,9 +53,9 @@ const users = [
 
 await User.deleteMany({});
 await User.insertMany(users);
-console.log('✅ Users seeded');
+console.log('✅ Users seeded into smart-waste-hub');
 
-// Seed Facilities
+// ── Seed Facilities ──────────────────────────────────────────────────────────
 const facilities = [
   { name: 'Main Recycling Center', type: 'recycling', lat: 28.6139, lng: 77.2090, address: 'Sector 1, New Delhi' },
   { name: 'Organic Compost Hub', type: 'compost', lat: 28.6210, lng: 77.2150, address: 'Central Park Road' },
@@ -56,7 +64,7 @@ const facilities = [
 
 await Facility.deleteMany({});
 await Facility.insertMany(facilities);
-console.log('✅ Facilities seeded');
+console.log('✅ Facilities seeded into smart-waste-hub');
 
 await mongoose.disconnect();
-console.log('🎉 Seeding complete!');
+console.log('🎉 Seeding complete! Your smart-waste-hub database is ready.');
