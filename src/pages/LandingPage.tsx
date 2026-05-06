@@ -59,6 +59,7 @@ function PublicAIDetector() {
   const [modelReady, setModelReady]   = useState(false);
   const [cameraOn, setCameraOn]       = useState(false);
   const [dragOver, setDragOver]       = useState(false);
+  const [saved, setSaved]             = useState(false);
 
   const fileRef   = useRef<HTMLInputElement>(null);
   const videoRef  = useRef<HTMLVideoElement>(null);
@@ -111,9 +112,49 @@ function PublicAIDetector() {
     return { category: demo, confidence: Math.floor(Math.random() * 15) + 82, ...BIN_META[demo] };
   }, []);
 
+  const saveToDatabase = async (res: WasteResult, src: string) => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      const payload = {
+        userId:     user?._id  || 'guest',
+        userName:   user?.name || 'Guest User',
+        imageData:  src,
+        result:     res.category,
+        confidence: res.confidence,
+        source:     'landing_page',
+      };
+      // Save to ai_scans (full scan log)
+      await fetch('/api/ai-scans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      // Also save to datasets (model training data)
+      await fetch('/api/datasets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          label: res.category,
+          originalLabel: res.category,
+          confidence: res.confidence,
+          imageData: src,
+          userId: user?._id || 'guest',
+          source: 'landing_page',
+        }),
+      });
+      setSaved(true);
+    } catch (e) {
+      console.warn('Could not save scan to DB:', e);
+    }
+  };
+
   const analyze = async (src: string) => {
-    setLoading(true); setResult(null); setError(null);
-    try { setResult(await runInference(src)); }
+    setLoading(true); setResult(null); setError(null); setSaved(false);
+    try {
+      const res = await runInference(src);
+      setResult(res);
+      saveToDatabase(res, src);
+    }
     catch { setError('Analysis failed. Try a clearer image.'); }
     setLoading(false);
   };
@@ -145,7 +186,7 @@ function PublicAIDetector() {
     setPreview(src); stopCamera(); setMode('upload'); analyze(src);
   };
 
-  const reset = () => { stopCamera(); setPreview(null); setResult(null); setError(null); setMode('idle'); };
+  const reset = () => { stopCamera(); setPreview(null); setResult(null); setError(null); setSaved(false); setMode('idle'); };
 
   const binColors: Record<BinKey, string> = { GREEN_BIN: '#22c55e', BLUE_BIN: '#3b82f6', RED_BIN: '#ef4444' };
 
@@ -283,6 +324,17 @@ function PublicAIDetector() {
               </div>
             </div>
             <p className="text-sm text-slate-300 bg-black/20 rounded-xl p-3">💡 {result.reason}</p>
+
+            {/* Saved badge */}
+            <AnimatePresence>
+              {saved && (
+                <motion.div initial={{ opacity:0, y:6 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}
+                  className="flex items-center justify-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-xl py-2">
+                  <CheckCircle className="w-3.5 h-3.5" /> Saved to database
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <button onClick={reset}
               className="w-full py-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 hover:text-white flex items-center justify-center gap-2 text-sm transition-colors">
               <RefreshCw className="w-4 h-4" /> Classify Another Item

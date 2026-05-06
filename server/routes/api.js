@@ -299,6 +299,40 @@ router.get('/analytics', async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// AI SCANS — every image upload + result logged here
+// ─────────────────────────────────────────────────────────────────────────────
+router.post('/ai-scans', async (req, res) => {
+  try {
+    const db = getDB();
+    const { userId, userName, imageData, result, confidence, source } = req.body;
+    const data = {
+      userId:     userId     || 'guest',
+      userName:   userName   || 'Guest User',
+      imageData:  imageData  || null,
+      result:     result     || null,      // 'GREEN_BIN' | 'BLUE_BIN' | 'RED_BIN'
+      confidence: confidence || null,
+      source:     source     || 'landing_page',
+      uploadedAt: new Date().toISOString(),
+    };
+    const ref = await db.collection('ai_scans').add(data);
+    console.log(`📸 AI scan saved [${data.source}] → ${data.result} (${data.confidence}%) by ${data.userId}`);
+    res.json({ success: true, id: ref.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/ai-scans', async (req, res) => {
+  try {
+    const db = getDB();
+    const snap = await db.collection('ai_scans').orderBy('uploadedAt', 'desc').limit(100).get();
+    res.json(snap.docs.map(docToObj));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // DATASETS & MODEL
 // ─────────────────────────────────────────────────────────────────────────────
 router.post('/datasets', async (req, res) => {
