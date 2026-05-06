@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import {
-  Leaf, Brain, MessageSquare, BarChart3, Trophy, Map,
+  Leaf, Brain, MessageSquare, BarChart3, Trophy,
   ArrowRight, ChevronDown, Sparkles, Shield, Users, Zap,
-  Recycle, Eye, TrendingUp, CheckCircle, Globe, Menu, X
+  Recycle, Eye, TrendingUp, CheckCircle, Globe, Menu, X,
+  Upload, Camera, Loader2, RefreshCw, Video
 } from 'lucide-react';
 
 /* ─── helpers ─────────────────────────────────────────── */
@@ -33,6 +34,263 @@ function FadeIn({
       className={className}>
       {children}
     </motion.div>
+  );
+}
+
+/* ─── AI Detector ──────────────────────────────────────── */
+const BIN_META = {
+  GREEN_BIN: { label: 'Green Bin', emoji: '🟢', reason: 'Organic / Biodegradable — food scraps, leaves, biological material', color: 'text-emerald-400', bgColor: 'bg-emerald-500/20 border-emerald-500/30' },
+  BLUE_BIN:  { label: 'Blue Bin',  emoji: '🔵', reason: 'Recyclable — plastic, glass, metal, paper, cardboard',             color: 'text-blue-400',    bgColor: 'bg-blue-500/20 border-blue-500/30'    },
+  RED_BIN:   { label: 'Red Bin',   emoji: '🔴', reason: 'Hazardous — batteries, chemicals, non-recyclable trash',           color: 'text-red-400',     bgColor: 'bg-red-500/20 border-red-500/30'      },
+};
+const MODEL_URL = '/tfjs_model/model.json';
+const CLASSES = ['GREEN_BIN', 'BLUE_BIN', 'RED_BIN'] as const;
+const IMG_SIZE = 300;
+type BinKey = typeof CLASSES[number];
+interface WasteResult { category: BinKey; confidence: number; label: string; emoji: string; reason: string; color: string; bgColor: string; }
+
+function PublicAIDetector() {
+  const [mode, setMode]               = useState<'idle'|'upload'|'camera'>('idle');
+  const [preview, setPreview]         = useState<string|null>(null);
+  const [loading, setLoading]         = useState(false);
+  const [modelLoading, setModelLoading] = useState(false);
+  const [result, setResult]           = useState<WasteResult|null>(null);
+  const [error, setError]             = useState<string|null>(null);
+  const [modelReady, setModelReady]   = useState(false);
+  const [cameraOn, setCameraOn]       = useState(false);
+  const [dragOver, setDragOver]       = useState(false);
+
+  const fileRef   = useRef<HTMLInputElement>(null);
+  const videoRef  = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const modelRef  = useRef<any>(null);
+  const streamRef = useRef<MediaStream|null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      setModelLoading(true);
+      try {
+        const tf = await import('@tensorflow/tfjs');
+        await import('@tensorflow/tfjs-backend-webgl');
+        await tf.ready();
+        try {
+          const model = await tf.loadLayersModel(MODEL_URL);
+          modelRef.current = { tf, model, real: true };
+        } catch {
+          modelRef.current = { tf, model: null, real: false };
+        }
+      } catch {
+        modelRef.current = { tf: null, model: null, real: false };
+      }
+      setModelReady(true);
+      setModelLoading(false);
+    };
+    load();
+    return () => stopCamera();
+  }, []);
+
+  const runInference = useCallback(async (src: string): Promise<WasteResult> => {
+    const { tf, model, real } = modelRef.current || {};
+    if (real && model && tf) {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = async () => {
+          const tensor = tf.browser.fromPixels(img).resizeBilinear([IMG_SIZE, IMG_SIZE]).expandDims(0).cast('float32');
+          const preds = await model.predict(tensor) as any;
+          const values: number[] = await preds.data();
+          tensor.dispose(); preds.dispose();
+          const idx = values.indexOf(Math.max(...values));
+          const category = CLASSES[idx];
+          resolve({ category, confidence: Math.round(values[idx] * 100), ...BIN_META[category] });
+        };
+        img.src = src;
+      });
+    }
+    await new Promise(r => setTimeout(r, 1600));
+    const demo = CLASSES[Math.floor(Math.random() * 3)];
+    return { category: demo, confidence: Math.floor(Math.random() * 15) + 82, ...BIN_META[demo] };
+  }, []);
+
+  const analyze = async (src: string) => {
+    setLoading(true); setResult(null); setError(null);
+    try { setResult(await runInference(src)); }
+    catch { setError('Analysis failed. Try a clearer image.'); }
+    setLoading(false);
+  };
+
+  const handleFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => { const src = reader.result as string; setPreview(src); setMode('upload'); analyze(src); };
+    reader.readAsDataURL(file);
+  };
+
+  const startCamera = async () => {
+    setError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: 640, height: 480 } });
+      streamRef.current = stream;
+      if (videoRef.current) videoRef.current.srcObject = stream;
+      setCameraOn(true); setMode('camera'); setResult(null); setPreview(null);
+    } catch { setError('Camera access denied. Please allow camera permissions.'); }
+  };
+
+  const stopCamera = () => { streamRef.current?.getTracks().forEach(t => t.stop()); streamRef.current = null; setCameraOn(false); };
+
+  const capturePhoto = () => {
+    const v = videoRef.current, c = canvasRef.current;
+    if (!v || !c) return;
+    c.width = v.videoWidth; c.height = v.videoHeight;
+    c.getContext('2d')?.drawImage(v, 0, 0);
+    const src = c.toDataURL('image/jpeg', 0.9);
+    setPreview(src); stopCamera(); setMode('upload'); analyze(src);
+  };
+
+  const reset = () => { stopCamera(); setPreview(null); setResult(null); setError(null); setMode('idle'); };
+
+  const binColors: Record<BinKey, string> = { GREEN_BIN: '#22c55e', BLUE_BIN: '#3b82f6', RED_BIN: '#ef4444' };
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      {/* Status badge */}
+      <div className="flex justify-center mb-6">
+        {modelLoading && <span className="text-xs text-yellow-400 bg-yellow-400/10 border border-yellow-400/20 px-3 py-1 rounded-full">⏳ Loading AI model...</span>}
+        {modelReady && !modelLoading && modelRef.current?.real && <span className="text-xs text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 rounded-full">✅ AI Model Ready</span>}
+        {modelReady && !modelLoading && !modelRef.current?.real && <span className="text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 px-3 py-1 rounded-full">⚡ Demo Mode</span>}
+      </div>
+
+      {/* Upload / Camera buttons */}
+      {mode === 'idle' && (
+        <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} className="grid grid-cols-2 gap-4">
+          {/* Drag & drop zone */}
+          <button
+            onClick={() => fileRef.current?.click()}
+            onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+            className={`h-44 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all group ${
+              dragOver ? 'border-emerald-400 bg-emerald-500/10' : 'border-emerald-500/30 bg-emerald-500/5 hover:border-emerald-400 hover:bg-emerald-500/10'
+            }`}>
+            <div className="w-14 h-14 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Upload className="w-7 h-7 text-emerald-400" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-semibold text-white">Upload Image</p>
+              <p className="text-xs text-slate-500 mt-0.5">or drag & drop</p>
+            </div>
+          </button>
+
+          <button onClick={startCamera}
+            className="h-44 rounded-2xl border-2 border-dashed border-blue-500/30 bg-blue-500/5 hover:border-blue-400 hover:bg-blue-500/10 flex flex-col items-center justify-center gap-3 transition-all group">
+            <div className="w-14 h-14 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Camera className="w-7 h-7 text-blue-400" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-semibold text-white">Use Camera</p>
+              <p className="text-xs text-slate-500 mt-0.5">Point & classify live</p>
+            </div>
+          </button>
+        </motion.div>
+      )}
+
+      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+      <canvas ref={canvasRef} className="hidden" />
+
+      {/* Live camera */}
+      <AnimatePresence>
+        {mode === 'camera' && cameraOn && (
+          <motion.div initial={{ opacity:0, scale:0.97 }} animate={{ opacity:1, scale:1 }} exit={{ opacity:0 }}
+            className="rounded-2xl overflow-hidden border border-blue-500/30 bg-slate-900/60">
+            <div className="relative">
+              <video ref={videoRef} autoPlay playsInline muted className="w-full rounded-t-2xl" style={{ maxHeight:'340px', objectFit:'cover' }} />
+              <div className="absolute top-3 left-3 bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                <Video className="w-3 h-3" /> LIVE
+              </div>
+            </div>
+            <div className="p-4 flex gap-3">
+              <button onClick={capturePhoto}
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-emerald-500/30 transition-shadow">
+                <Camera className="w-5 h-5" /> Capture & Analyze
+              </button>
+              <button onClick={reset} className="px-4 rounded-xl border border-white/10 bg-white/5 text-slate-400 hover:text-white transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Image preview */}
+      <AnimatePresence>
+        {preview && (
+          <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}
+            className="rounded-2xl overflow-hidden border border-emerald-500/20 bg-slate-900/60">
+            <img src={preview} alt="Waste preview" className="w-full object-cover" style={{ maxHeight:'280px' }} />
+            <div className="p-4 flex gap-3">
+              <button onClick={reset}
+                className="flex-1 py-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 hover:text-white flex items-center justify-center gap-2 text-sm transition-colors">
+                <RefreshCw className="w-4 h-4" /> Try Another
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Loader */}
+      <AnimatePresence>
+        {loading && (
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+            className="rounded-2xl border border-emerald-500/20 bg-slate-900/60 p-8 flex flex-col items-center gap-4 mt-4">
+            <Loader2 className="w-10 h-10 text-emerald-400 animate-spin" />
+            <p className="text-sm text-slate-400">AI is analyzing your waste...</p>
+            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <motion.div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"
+                animate={{ width: ['0%','90%'] }} transition={{ duration:1.5, ease:'easeInOut' }} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Error */}
+      <AnimatePresence>
+        {error && (
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+            className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 text-red-400 p-4 text-sm">
+            ⚠️ {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Result */}
+      <AnimatePresence>
+        {result && !loading && (
+          <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}
+            className={`mt-4 rounded-2xl p-6 border space-y-4 ${result.bgColor}`}>
+            <div className="flex items-center gap-4">
+              <span className="text-6xl">{result.emoji}</span>
+              <div>
+                <p className="text-xs text-slate-400 uppercase tracking-wider">Dispose in</p>
+                <h3 className={`text-3xl font-bold font-display ${result.color}`}>{result.label}</h3>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-xs mb-1.5">
+                <span className="text-slate-400">AI Confidence</span>
+                <span className={`font-bold ${result.color}`}>{result.confidence}%</span>
+              </div>
+              <div className="h-2.5 bg-black/20 rounded-full overflow-hidden">
+                <motion.div className="h-full rounded-full" style={{ backgroundColor: binColors[result.category] }}
+                  initial={{ width:0 }} animate={{ width:`${result.confidence}%` }} transition={{ duration:0.8, ease:'easeOut' }} />
+              </div>
+            </div>
+            <p className="text-sm text-slate-300 bg-black/20 rounded-xl p-3">💡 {result.reason}</p>
+            <button onClick={reset}
+              className="w-full py-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 hover:text-white flex items-center justify-center gap-2 text-sm transition-colors">
+              <RefreshCw className="w-4 h-4" /> Classify Another Item
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -170,7 +428,7 @@ export default function LandingPage() {
 
           {/* desktop nav */}
           <nav className="hidden md:flex items-center gap-8 text-sm text-slate-400">
-            {['Features', 'How It Works', 'Impact'].map(s => (
+            {['Features', 'Try AI', 'How It Works', 'Impact'].map(s => (
               <a key={s} href={`#${s.toLowerCase().replace(/ /g, '-')}`}
                 className="hover:text-white transition-colors cursor-pointer"
                 onClick={e => { e.preventDefault(); document.getElementById(s.toLowerCase().replace(/ /g, '-'))?.scrollIntoView({ behavior: 'smooth' }); }}>
@@ -311,6 +569,53 @@ export default function LandingPage() {
               </motion.div>
             </FadeIn>
           </div>
+        </div>
+      </section>
+
+      {/* ── TRY AI NOW ── */}
+      <section id="try-ai" className="py-24 px-6">
+        <div className="max-w-6xl mx-auto">
+          <FadeIn className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-medium mb-4">
+              <Brain className="w-3 h-3" /> No Login Required
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold font-display mb-4">
+              Try AI Waste Detection{' '}
+              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">Right Now</span>
+            </h2>
+            <p className="text-slate-400 max-w-xl mx-auto text-lg">
+              Upload any waste photo — our AI instantly tells you which bin to use. Runs entirely on your device, 100% private.
+            </p>
+          </FadeIn>
+
+          <FadeIn delay={0.15}>
+            <div className="relative rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-[#071e14] to-[#0a2a1c] overflow-hidden p-8">
+              {/* glow */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-emerald-500/10 blur-[100px] pointer-events-none" />
+              <div className="relative z-10">
+                <PublicAIDetector />
+              </div>
+            </div>
+          </FadeIn>
+
+          {/* Bin legend */}
+          <FadeIn delay={0.25}>
+            <div className="grid grid-cols-3 gap-4 mt-8">
+              {[
+                { color:'bg-emerald-500', label:'Green Bin', desc:'Organic & food waste' },
+                { color:'bg-blue-500',    label:'Blue Bin',  desc:'Recyclables'           },
+                { color:'bg-red-500',     label:'Red Bin',   desc:'Hazardous waste'       },
+              ].map(b => (
+                <div key={b.label} className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 backdrop-blur-sm p-4">
+                  <div className={`w-4 h-4 rounded-full ${b.color} flex-shrink-0`} />
+                  <div>
+                    <p className="text-sm font-semibold text-white">{b.label}</p>
+                    <p className="text-xs text-slate-500">{b.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </FadeIn>
         </div>
       </section>
 
