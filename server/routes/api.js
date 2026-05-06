@@ -11,6 +11,45 @@ const docToObj = (doc) => ({ id: doc.id, _id: doc.id, ...doc.data() });
 // ─────────────────────────────────────────────────────────────────────────────
 // AUTH ROUTES
 // ─────────────────────────────────────────────────────────────────────────────
+router.post('/auth/social-login', async (req, res) => {
+  try {
+    const db = getDB();
+    const { uid, name, email, phone, provider } = req.body;
+    if (!uid) return res.status(400).json({ error: 'uid is required' });
+
+    // Check if user already exists by uid
+    const existing = await db.collection('users').where('uid', '==', uid).get();
+
+    if (!existing.empty) {
+      // Return existing user
+      const user = { id: existing.docs[0].id, _id: existing.docs[0].id, ...existing.docs[0].data() };
+      const { password: _, ...safe } = user as any;
+      return res.json(safe);
+    }
+
+    // Create new user
+    const userData = {
+      uid,
+      name:            name  || `User_${uid.slice(0, 6)}`,
+      email:           email || null,
+      phone:           phone || null,
+      provider,                          // 'google' | 'phone'
+      role:            'citizen',
+      complianceScore: 0,
+      rewardPoints:    0,
+      area:            '',
+      createdAt:       new Date().toISOString(),
+      updatedAt:       new Date().toISOString(),
+    };
+
+    const ref = await db.collection('users').add(userData);
+    console.log(`✅ Social user saved [${provider}]: ${name || phone || email}`);
+    res.json({ id: ref.id, _id: ref.id, ...userData });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/auth/login', async (req, res) => {
   let { email, password } = req.body;
   if (email) email = email.trim().toLowerCase();
