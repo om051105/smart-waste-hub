@@ -155,13 +155,24 @@ export default function LoginPage() {
     if (!phone) return;
     setIsLoading(true);
     try {
-      if (!recaptchaRef.current) {
-        recaptchaRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+      // Format to E.164: strip spaces/dashes, prepend +91 if not already there
+      const digits = phone.replace(/\D/g, '');
+      const e164 = digits.startsWith('91') && digits.length === 12
+        ? `+${digits}`
+        : `+91${digits.slice(-10)}`;
+
+      // Always create a fresh RecaptchaVerifier
+      if (recaptchaRef.current) {
+        try { recaptchaRef.current.clear(); } catch (_) {}
+        recaptchaRef.current = null;
       }
-      const result = await signInWithPhoneNumber(auth, phone, recaptchaRef.current);
+      recaptchaRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+      await recaptchaRef.current.render();
+
+      const result = await signInWithPhoneNumber(auth, e164, recaptchaRef.current);
       setConfirmationResult(result);
       setOtpSent(true);
-      toast({ title: 'OTP Sent! 📱', description: `Code sent to ${phone}` });
+      toast({ title: 'OTP Sent! 📱', description: `Code sent to ${e164}` });
     } catch (err: any) {
       toast({ title: 'Failed to send OTP', description: err.message, variant: 'destructive' });
     } finally {
@@ -361,23 +372,36 @@ export default function LoginPage() {
                         {phoneMode && (
                           <motion.div initial={{ opacity:0, height:0 }} animate={{ opacity:1, height:'auto' }} exit={{ opacity:0, height:0 }}
                             className="space-y-3 overflow-hidden">
+                            {/* Phone number input with +91 prefix */}
                             <div className="flex gap-2">
-                              <Input value={phone} onChange={e => setPhone(e.target.value)}
-                                placeholder="+91 9876543210" disabled={otpSent}
-                                className="h-11 bg-emerald-950/50 border-emerald-500/20 text-white placeholder:text-emerald-200/30 rounded-xl flex-1" />
+                              <div className="flex rounded-xl overflow-hidden border border-emerald-500/20 flex-1">
+                                <span className="flex items-center px-3 bg-emerald-900/60 text-emerald-300 text-sm font-mono border-r border-emerald-500/20 whitespace-nowrap">
+                                  🇮🇳 +91
+                                </span>
+                                <input
+                                  value={phone}
+                                  onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                  placeholder="9876543210"
+                                  disabled={otpSent}
+                                  maxLength={10}
+                                  className="flex-1 h-11 bg-emerald-950/50 text-white placeholder:text-emerald-200/30 px-3 outline-none text-sm"
+                                />
+                              </div>
                               {!otpSent && (
-                                <button type="button" onClick={handleSendOtp} disabled={isLoading || !phone}
+                                <button type="button" onClick={handleSendOtp}
+                                  disabled={isLoading || phone.length < 10}
                                   className="px-4 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors whitespace-nowrap disabled:opacity-50">
                                   {isLoading ? '...' : 'Send OTP'}
                                 </button>
                               )}
                             </div>
+                            {/* OTP input */}
                             {otpSent && (
                               <div className="flex gap-2">
-                                <Input value={otp} onChange={e => setOtp(e.target.value)}
-                                  placeholder="Enter 6-digit OTP"
-                                  className="h-11 bg-emerald-950/50 border-emerald-500/20 text-white placeholder:text-emerald-200/30 rounded-xl flex-1" />
-                                <button type="button" onClick={handleVerifyOtp} disabled={isLoading || !otp}
+                                <input value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                  placeholder="Enter 6-digit OTP" maxLength={6}
+                                  className="flex-1 h-11 rounded-xl bg-emerald-950/50 border border-emerald-500/20 text-white placeholder:text-emerald-200/30 px-3 outline-none text-sm" />
+                                <button type="button" onClick={handleVerifyOtp} disabled={isLoading || otp.length < 6}
                                   className="px-4 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors disabled:opacity-50">
                                   {isLoading ? '...' : 'Verify'}
                                 </button>
