@@ -1,10 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index";
+import LandingPage from "./pages/LandingPage";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
+import AuthPage from "./pages/AuthPage";
 import DashboardPage from "./pages/DashboardPage";
 import ProtectedPage from "./components/ProtectedPage";
 import AIDetectPage from "./pages/AIDetectPage";
@@ -15,6 +17,7 @@ import FacilitiesPage from "./pages/FacilitiesPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import CollectionsPage from "./pages/CollectionsPage";
 import ChampionDashboard from "./pages/ChampionDashboard";
+import UsersPage from "./pages/UsersPage";
 import { getSession } from "./lib/auth";
 
 const queryClient = new QueryClient();
@@ -33,10 +36,11 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      <HashRouter>
+      <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/auth" element={<Navigate to="/login" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/ai-detect" element={<ProtectedRoute><AIDetectPage /></ProtectedRoute>} />
           <Route path="/complaints" element={<ProtectedRoute><UserProp>{(user) => <ComplaintsPage user={user} />}</UserProp></ProtectedRoute>} />
@@ -46,9 +50,10 @@ const App = () => (
           <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
           <Route path="/collections" element={<ProtectedRoute><CollectionsPage /></ProtectedRoute>} />
           <Route path="/inspections" element={<ProtectedRoute><UserProp>{(user) => <ChampionDashboard user={user} />}</UserProp></ProtectedRoute>} />
+          <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </HashRouter>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );

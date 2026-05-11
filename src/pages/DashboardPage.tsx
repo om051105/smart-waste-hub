@@ -8,7 +8,7 @@ import ChampionDashboard from './ChampionDashboard';
 
 export default function DashboardPage() {
   const user = getSession();
-  if (!user) return <Navigate to="/login" />;
+  if (!user) return <Navigate to="/auth" />;
 
   const dashboards = {
     citizen: <CitizenDashboard user={user} />,
@@ -17,9 +17,12 @@ export default function DashboardPage() {
     champion: <ChampionDashboard user={user} />,
   };
 
+  const normalizedRole = (user.role as keyof typeof dashboards) || 'citizen';
+  const SelectedDashboard = dashboards[normalizedRole] || dashboards['citizen'];
+
   return (
     <DashboardLayout user={user}>
-      {dashboards[user.role]}
+      {SelectedDashboard}
     </DashboardLayout>
   );
 }
