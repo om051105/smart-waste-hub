@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Leaf, Sparkles, Shield, Recycle, Trophy, ArrowLeft, Phone } from 'lucide-react';
+import { Leaf, Eye, EyeOff, ArrowRight, Sparkles, Shield, Recycle, Trophy, ArrowLeft, Phone } from 'lucide-react';
+import { login, register, UserRole } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { auth, googleProvider, RecaptchaVerifier, signInWithPhoneNumber, signInWithPopup } from '@/lib/firebase';
 
@@ -98,6 +102,13 @@ async function saveSocialUser(user: { uid: string; name: string | null; email: s
 }
 
 export default function LoginPage() {
+  const [isRegister, setIsRegister] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [area, setArea] = useState('');
+  const [role, setRole] = useState<UserRole>('citizen');
+  const [showPw, setShowPw] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   // Phone OTP state
   const [phoneMode, setPhoneMode] = useState(false);
@@ -187,6 +198,27 @@ export default function LoginPage() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      if (isRegister) {
+        await register(name, email, password, role, area);
+        navigate('/dashboard');
+      } else {
+        await login(email, password);
+        navigate('/dashboard');
+      }
+    } catch (err: any) {
+      toast({
+        title: isRegister ? 'Registration Failed' : 'Login Failed',
+        description: err.message || 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#071e14] text-white overflow-hidden relative">
@@ -294,85 +326,7 @@ export default function LoginPage() {
                       Access your dashboard and make an impact.
                     </motion.p>
 
-                    {/* ── Social Sign-In Buttons ── */}
-                    <motion.div variants={itemVariants} className="space-y-3 mb-6">
-                      {/* Google */}
-                      <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                        onClick={handleGoogleSignIn} disabled={isLoading}
-                        className="w-full h-11 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center gap-3 text-sm font-medium text-white transition-all">
-                        {/* Google icon SVG */}
-                        <svg className="w-5 h-5" viewBox="0 0 24 24">
-                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                        </svg>
-                        Continue with Google
-                      </motion.button>
 
-                      {/* Phone */}
-                      <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                        onClick={() => setPhoneMode(!phoneMode)} disabled={isLoading}
-                        className="w-full h-11 rounded-xl border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 flex items-center justify-center gap-3 text-sm font-medium text-emerald-300 transition-all">
-                        <Phone className="w-4 h-4" />
-                        Continue with Phone Number
-                      </motion.button>
-
-                      {/* Phone OTP flow */}
-                      <AnimatePresence>
-                        {phoneMode && (
-                          <motion.div initial={{ opacity:0, height:0 }} animate={{ opacity:1, height:'auto' }} exit={{ opacity:0, height:0 }}
-                            className="space-y-3 overflow-hidden">
-                            {/* Phone number input with +91 prefix */}
-                            <div className="flex gap-2">
-                              <div className="flex rounded-xl overflow-hidden border border-emerald-500/20 flex-1">
-                                <span className="flex items-center px-3 bg-emerald-900/60 text-emerald-300 text-xs font-bold border-r border-emerald-500/20 whitespace-nowrap min-w-[65px] justify-center">
-                                  IN +91
-                                </span>
-                                <input
-                                  value={phone}
-                                  onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                                  placeholder="9876543210"
-                                  autoFocus
-                                  disabled={otpSent}
-                                  maxLength={10}
-                                  className="flex-1 h-11 bg-emerald-950/50 text-white placeholder:text-emerald-200/30 px-4 outline-none text-sm w-full"
-                                />
-                              </div>
-                              {!otpSent && (
-                                <button type="button" onClick={handleSendOtp}
-                                  disabled={isLoading || phone.length < 10}
-                                  className="px-4 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors whitespace-nowrap disabled:opacity-50">
-                                  {isLoading ? '...' : 'Send OTP'}
-                                </button>
-                              )}
-                            </div>
-                            {/* OTP input */}
-                            {otpSent && (
-                              <div className="flex gap-2">
-                                <input value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                  placeholder="Enter 6-digit OTP" maxLength={6}
-                                  className="flex-1 h-11 rounded-xl bg-emerald-950/50 border border-emerald-500/20 text-white placeholder:text-emerald-200/30 px-3 outline-none text-sm" />
-                                <button type="button" onClick={handleVerifyOtp} disabled={isLoading || otp.length < 6}
-                                  className="px-4 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors disabled:opacity-50">
-                                  {isLoading ? '...' : 'Verify'}
-                                </button>
-                              </div>
-                            )}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-
-                      {/* invisible reCAPTCHA container */}
-                      <div id="recaptcha-container" />
-
-                      {/* Divider */}
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 h-px bg-emerald-500/10" />
-                        <span className="text-xs text-emerald-300/30">or sign in with email</span>
-                        <div className="flex-1 h-px bg-emerald-500/10" />
-                      </div>
-                    </motion.div>
 
                     {/* ── Email / Password Form ── */}
                     <motion.form variants={itemVariants} onSubmit={handleSubmit} className="space-y-5">
