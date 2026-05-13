@@ -1,11 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Leaf, Eye, EyeOff, ArrowRight, Sparkles, Shield, Users, Recycle, Trophy, ArrowLeft, Phone } from 'lucide-react';
-import { login, register, UserRole } from '@/lib/auth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Leaf, Sparkles, Shield, Recycle, Trophy, ArrowLeft, Phone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { auth, googleProvider, RecaptchaVerifier, signInWithPhoneNumber, signInWithPopup } from '@/lib/firebase';
 
@@ -73,13 +69,7 @@ function FloatingIcon({ icon: Icon, delay, x, y, size = 20 }: { icon: any; delay
   );
 }
 
-/* ─── Role data ────────────────────────────────────────────── */
-const ROLES: { value: UserRole; label: string; icon: any; desc: string; color: string; border: string }[] = [
-  { value: 'citizen', label: 'Citizen', icon: Users, desc: 'Report & earn rewards', color: 'from-blue-500/20 to-cyan-500/20', border: 'border-blue-500/30' },
-  { value: 'worker', label: 'Waste Worker', icon: Recycle, desc: 'Manage collections', color: 'from-emerald-500/20 to-teal-500/20', border: 'border-emerald-500/30' },
-  { value: 'admin', label: 'Administrator', icon: Shield, desc: 'Govern & oversee', color: 'from-violet-500/20 to-purple-500/20', border: 'border-violet-500/30' },
-  { value: 'champion', label: 'Green Champion', icon: Trophy, desc: 'Lead sustainability', color: 'from-amber-500/20 to-orange-500/20', border: 'border-amber-500/30' },
-];
+
 
 /* ─── Stagger container & item variants ────────────────────── */
 const containerVariants = {
@@ -108,13 +98,6 @@ async function saveSocialUser(user: { uid: string; name: string | null; email: s
 }
 
 export default function LoginPage() {
-  const [isRegister, setIsRegister] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [area, setArea] = useState('');
-  const [role, setRole] = useState<UserRole>('citizen');
-  const [showPw, setShowPw] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   // Phone OTP state
   const [phoneMode, setPhoneMode] = useState(false);
@@ -204,27 +187,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      if (isRegister) {
-        await register(name, email, password, role, area);
-        navigate('/dashboard');
-      } else {
-        await login(email, password);
-        navigate('/dashboard');
-      }
-    } catch (err: any) {
-      toast({
-        title: isRegister ? 'Registration Failed' : 'Login Failed',
-        description: err.message || 'An unexpected error occurred. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-[#071e14] text-white overflow-hidden relative">
@@ -294,13 +256,13 @@ export default function LoginPage() {
           </motion.button>
         </motion.header>
 
-        {/* ── Main form area ── */}
+        {/* ── Main card area ── */}
         <div className="flex-1 flex items-center justify-center px-6 py-8">
           <div className="w-full max-w-lg">
 
             <AnimatePresence mode="wait">
               <motion.div
-                key={isRegister ? 'register' : 'login'}
+                key="social-login"
                 initial={{ opacity: 0, y: 30, scale: 0.97 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -20, scale: 0.97 }}
@@ -325,22 +287,19 @@ export default function LoginPage() {
                       className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 text-xs font-medium mb-6"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
-                      {isRegister ? 'Join the Platform' : 'Welcome Back'}
+                      Welcome Back
                     </motion.div>
 
                     {/* Heading */}
                     <motion.h1 variants={itemVariants}
                       className="text-3xl md:text-4xl font-bold font-display mb-2"
                     >
-                      {isRegister ? (
-                        <>Create your <span className="bg-gradient-to-r from-emerald-300 via-teal-300 to-green-300 bg-clip-text text-transparent">account</span></>
-                      ) : (
-                        <>Sign in to <span className="bg-gradient-to-r from-emerald-300 via-teal-300 to-green-300 bg-clip-text text-transparent">WasteWise+</span></>
-                      )}
+                      Sign in to{' '}
+                      <span className="bg-gradient-to-r from-emerald-300 via-teal-300 to-green-300 bg-clip-text text-transparent">WasteWise+</span>
                     </motion.h1>
 
                     <motion.p variants={itemVariants} className="text-emerald-200/50 mb-8">
-                      {isRegister ? 'Join thousands building greener communities.' : 'Access your dashboard and make an impact.'}
+                      Access your dashboard and make an impact.
                     </motion.p>
 
                     {/* ── Social Sign-In Buttons ── */}
@@ -375,16 +334,17 @@ export default function LoginPage() {
                             {/* Phone number input with +91 prefix */}
                             <div className="flex gap-2">
                               <div className="flex rounded-xl overflow-hidden border border-emerald-500/20 flex-1">
-                                <span className="flex items-center px-3 bg-emerald-900/60 text-emerald-300 text-sm font-mono border-r border-emerald-500/20 whitespace-nowrap">
-                                  🇮🇳 +91
+                                <span className="flex items-center px-3 bg-emerald-900/60 text-emerald-300 text-xs font-bold border-r border-emerald-500/20 whitespace-nowrap min-w-[65px] justify-center">
+                                  IN +91
                                 </span>
                                 <input
                                   value={phone}
                                   onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                                   placeholder="9876543210"
+                                  autoFocus
                                   disabled={otpSent}
                                   maxLength={10}
-                                  className="flex-1 h-11 bg-emerald-950/50 text-white placeholder:text-emerald-200/30 px-3 outline-none text-sm"
+                                  className="flex-1 h-11 bg-emerald-950/50 text-white placeholder:text-emerald-200/30 px-4 outline-none text-sm w-full"
                                 />
                               </div>
                               {!otpSent && (
@@ -414,158 +374,9 @@ export default function LoginPage() {
                       {/* invisible reCAPTCHA container */}
                       <div id="recaptcha-container" />
 
-                      {/* Divider */}
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 h-px bg-emerald-500/10" />
-                        <span className="text-xs text-emerald-300/30">or sign in with email</span>
-                        <div className="flex-1 h-px bg-emerald-500/10" />
-                      </div>
                     </motion.div>
 
-                    {/* ── Form ── */}
-                    <motion.form variants={itemVariants} onSubmit={handleSubmit} className="space-y-5">
 
-                      {/* Name (register only) */}
-                      <AnimatePresence>
-                        {isRegister && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <Label className="text-sm text-emerald-100/70 font-medium">Full Name</Label>
-                            <Input
-                              value={name}
-                              onChange={e => setName(e.target.value)}
-                              placeholder="Your name"
-                              required
-                              className="mt-1.5 h-11 bg-emerald-950/50 border-emerald-500/20 text-white placeholder:text-emerald-200/30 focus:border-emerald-400/50 focus:ring-emerald-400/20 rounded-xl transition-all"
-                            />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-
-                      {/* Email */}
-                      <div>
-                        <Label className="text-sm text-emerald-100/70 font-medium">Email</Label>
-                        <Input
-                          type="email"
-                          value={email}
-                          onChange={e => setEmail(e.target.value)}
-                          placeholder="you@example.com"
-                          required
-                          className="mt-1.5 h-11 bg-emerald-950/50 border-emerald-500/20 text-white placeholder:text-emerald-200/30 focus:border-emerald-400/50 focus:ring-emerald-400/20 rounded-xl transition-all"
-                        />
-                      </div>
-
-                      {/* Password */}
-                      <div>
-                        <Label className="text-sm text-emerald-100/70 font-medium">Password</Label>
-                        <div className="relative mt-1.5">
-                          <Input
-                            type={showPw ? 'text' : 'password'}
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            required
-                            className="h-11 bg-emerald-950/50 border-emerald-500/20 text-white placeholder:text-emerald-200/30 focus:border-emerald-400/50 focus:ring-emerald-400/20 rounded-xl transition-all pr-11"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPw(!showPw)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300/40 hover:text-emerald-200 transition-colors"
-                          >
-                            {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Role selector (register only) */}
-                      <AnimatePresence>
-                        {isRegister && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <Label className="text-sm text-emerald-100/70 font-medium mb-2 block">Select Your Role</Label>
-                            <div className="grid grid-cols-2 gap-2.5">
-                              {ROLES.map((r) => {
-                                const Icon = r.icon;
-                                const isActive = role === r.value;
-                                return (
-                                  <motion.button
-                                    key={r.value}
-                                    type="button"
-                                    onClick={() => setRole(r.value)}
-                                    whileHover={{ scale: 1.03 }}
-                                    whileTap={{ scale: 0.97 }}
-                                    className={`relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all duration-200 ${
-                                      isActive
-                                        ? `bg-gradient-to-br ${r.color} ${r.border} shadow-lg`
-                                        : 'border-emerald-500/10 bg-emerald-950/30 hover:border-emerald-500/20 hover:bg-emerald-900/30'
-                                    }`}
-                                  >
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                                      isActive ? `bg-gradient-to-br ${r.color}` : 'bg-emerald-900/50'
-                                    }`}>
-                                      <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-300' : 'text-emerald-400/40'}`} />
-                                    </div>
-                                    <div className="min-w-0">
-                                      <div className={`text-xs font-semibold ${isActive ? 'text-white' : 'text-emerald-200/60'}`}>{r.label}</div>
-                                      <div className={`text-[10px] ${isActive ? 'text-emerald-100/60' : 'text-emerald-300/30'}`}>{r.desc}</div>
-                                    </div>
-                                    {isActive && (
-                                      <motion.div
-                                        layoutId="roleCheck"
-                                        className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-400"
-                                      />
-                                    )}
-                                  </motion.button>
-                                );
-                              })}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-
-                      {/* Submit button */}
-                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                        <Button
-                          type="submit"
-                          disabled={isLoading}
-                          className="w-full h-12 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all text-sm group border-0"
-                        >
-                          {isLoading ? (
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                              className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                            />
-                          ) : (
-                            <>
-                              {isRegister ? 'Create Account' : 'Sign In'}
-                              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                            </>
-                          )}
-                        </Button>
-                      </motion.div>
-                    </motion.form>
-
-                    {/* ── Toggle link ── */}
-                    <motion.div variants={itemVariants} className="mt-6 text-center">
-                      <span className="text-sm text-emerald-200/40">
-                        {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
-                      </span>
-                      <button
-                        onClick={() => setIsRegister(!isRegister)}
-                        className="text-sm text-emerald-400 font-medium hover:text-emerald-300 transition-colors hover:underline underline-offset-2"
-                      >
-                        {isRegister ? 'Sign In' : 'Create Account'}
-                      </button>
-                    </motion.div>
 
                   </motion.div>
                 </div>
