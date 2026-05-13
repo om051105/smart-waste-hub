@@ -366,9 +366,108 @@ export default function LoginPage() {
                       {/* invisible reCAPTCHA container */}
                       <div id="recaptcha-container" />
 
+                      {/* Divider */}
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-px bg-emerald-500/10" />
+                        <span className="text-xs text-emerald-300/30">or sign in with email</span>
+                        <div className="flex-1 h-px bg-emerald-500/10" />
+                      </div>
                     </motion.div>
 
+                    {/* ── Email / Password Form ── */}
+                    <motion.form variants={itemVariants} onSubmit={handleSubmit} className="space-y-5">
 
+                      {/* Name (register only) */}
+                      <AnimatePresence>
+                        {isRegister && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <Label className="text-sm text-emerald-100/70 font-medium">Full Name</Label>
+                            <Input
+                              value={name}
+                              onChange={e => setName(e.target.value)}
+                              placeholder="Your name"
+                              required
+                              className="mt-1.5 h-11 bg-emerald-950/50 border-emerald-500/20 text-white placeholder:text-emerald-200/30 focus:border-emerald-400/50 focus:ring-emerald-400/20 rounded-xl transition-all"
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Email */}
+                      <div>
+                        <Label className="text-sm text-emerald-100/70 font-medium">Email</Label>
+                        <Input
+                          type="email"
+                          value={email}
+                          onChange={e => setEmail(e.target.value)}
+                          placeholder="you@example.com"
+                          required
+                          className="mt-1.5 h-11 bg-emerald-950/50 border-emerald-500/20 text-white placeholder:text-emerald-200/30 focus:border-emerald-400/50 focus:ring-emerald-400/20 rounded-xl transition-all"
+                        />
+                      </div>
+
+                      {/* Password */}
+                      <div>
+                        <Label className="text-sm text-emerald-100/70 font-medium">Password</Label>
+                        <div className="relative mt-1.5">
+                          <Input
+                            type={showPw ? 'text' : 'password'}
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            placeholder="••••••••"
+                            required
+                            className="h-11 bg-emerald-950/50 border-emerald-500/20 text-white placeholder:text-emerald-200/30 focus:border-emerald-400/50 focus:ring-emerald-400/20 rounded-xl transition-all pr-11"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPw(!showPw)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300/40 hover:text-emerald-200 transition-colors"
+                          >
+                            {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Submit button */}
+                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <Button
+                          type="submit"
+                          disabled={isLoading}
+                          className="w-full h-12 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all text-sm group border-0"
+                        >
+                          {isLoading ? (
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                              className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                            />
+                          ) : (
+                            <>
+                              {isRegister ? 'Create Account' : 'Sign In'}
+                              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                            </>
+                          )}
+                        </Button>
+                      </motion.div>
+                    </motion.form>
+
+                    {/* ── Toggle link ── */}
+                    <motion.div variants={itemVariants} className="mt-6 text-center">
+                      <span className="text-sm text-emerald-200/40">
+                        {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
+                      </span>
+                      <button
+                        onClick={() => setIsRegister(!isRegister)}
+                        className="text-sm text-emerald-400 font-medium hover:text-emerald-300 transition-colors hover:underline underline-offset-2"
+                      >
+                        {isRegister ? 'Sign In' : 'Create Account'}
+                      </button>
+                    </motion.div>
 
                   </motion.div>
                 </div>
