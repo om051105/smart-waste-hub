@@ -282,14 +282,6 @@ export default function LoginPage() {
                     animate="visible"
                     className="relative z-10"
                   >
-                    {/* Badge */}
-                    <motion.div variants={itemVariants}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 text-xs font-medium mb-6"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      Welcome Back
-                    </motion.div>
-
                     {/* Heading */}
                     <motion.h1 variants={itemVariants}
                       className="text-3xl md:text-4xl font-bold font-display mb-2"
@@ -381,20 +373,6 @@ export default function LoginPage() {
                   </motion.div>
                 </div>
 
-                {/* ── Trust indicators beneath card ── */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6, duration: 0.5 }}
-                  className="mt-6 flex items-center justify-center gap-6 text-xs text-emerald-300/30"
-                >
-                  {['End-to-end encrypted', 'GDPR Compliant', 'SOC 2 Ready'].map((t) => (
-                    <div key={t} className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
-                      {t}
-                    </div>
-                  ))}
-                </motion.div>
 
               </motion.div>
             </AnimatePresence>
