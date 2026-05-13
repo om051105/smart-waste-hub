@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Leaf, Eye, EyeOff, ArrowRight, Sparkles, Shield, Recycle, Trophy, ArrowLeft, Phone } from 'lucide-react';
+import { Leaf, Eye, EyeOff, ArrowRight, Sparkles, Shield, Users, Recycle, Trophy, ArrowLeft, Phone } from 'lucide-react';
 import { login, register, UserRole } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -74,6 +74,13 @@ function FloatingIcon({ icon: Icon, delay, x, y, size = 20 }: { icon: any; delay
 }
 
 
+/* ─── Role data ────────────────────────────────────────────── */
+const ROLES: { value: string; label: string; icon: any; desc: string; color: string; border: string }[] = [
+  { value: 'citizen',  label: 'Citizen',        icon: Users,   desc: 'Report & earn rewards',  color: 'from-blue-500/20 to-cyan-500/20',   border: 'border-blue-500/30' },
+  { value: 'worker',   label: 'Waste Worker',   icon: Recycle, desc: 'Manage collections',     color: 'from-emerald-500/20 to-teal-500/20', border: 'border-emerald-500/30' },
+  { value: 'admin',    label: 'Administrator',  icon: Shield,  desc: 'Govern & oversee',       color: 'from-violet-500/20 to-purple-500/20', border: 'border-violet-500/30' },
+  { value: 'champion', label: 'Green Champion', icon: Trophy,  desc: 'Lead sustainability',    color: 'from-amber-500/20 to-orange-500/20',  border: 'border-amber-500/30' },
+];
 
 /* ─── Stagger container & item variants ────────────────────── */
 const containerVariants = {
@@ -318,12 +325,15 @@ export default function LoginPage() {
                     <motion.h1 variants={itemVariants}
                       className="text-3xl md:text-4xl font-bold font-display mb-2"
                     >
-                      Sign in to{' '}
-                      <span className="bg-gradient-to-r from-emerald-300 via-teal-300 to-green-300 bg-clip-text text-transparent">WasteWise+</span>
+                      {isRegister ? (
+                        <>Create your <span className="bg-gradient-to-r from-emerald-300 via-teal-300 to-green-300 bg-clip-text text-transparent">account</span></>
+                      ) : (
+                        <>Sign in to <span className="bg-gradient-to-r from-emerald-300 via-teal-300 to-green-300 bg-clip-text text-transparent">WasteWise+</span></>
+                      )}
                     </motion.h1>
 
                     <motion.p variants={itemVariants} className="text-emerald-200/50 mb-8">
-                      Access your dashboard and make an impact.
+                      {isRegister ? 'Join thousands building greener communities.' : 'Access your dashboard and make an impact.'}
                     </motion.p>
 
 
@@ -386,6 +396,56 @@ export default function LoginPage() {
                           </button>
                         </div>
                       </div>
+
+                      {/* Role selector (register only) */}
+                      <AnimatePresence>
+                        {isRegister && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <Label className="text-sm text-emerald-100/70 font-medium mb-2 block">Select Your Role</Label>
+                            <div className="grid grid-cols-2 gap-2.5">
+                              {ROLES.map((r) => {
+                                const Icon = r.icon;
+                                const isActive = role === r.value;
+                                return (
+                                  <motion.button
+                                    key={r.value}
+                                    type="button"
+                                    onClick={() => setRole(r.value as UserRole)}
+                                    whileHover={{ scale: 1.03 }}
+                                    whileTap={{ scale: 0.97 }}
+                                    className={`relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all duration-200 ${
+                                      isActive
+                                        ? `bg-gradient-to-br ${r.color} ${r.border} shadow-lg`
+                                        : 'border-emerald-500/10 bg-emerald-950/30 hover:border-emerald-500/20 hover:bg-emerald-900/30'
+                                    }`}
+                                  >
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                                      isActive ? `bg-gradient-to-br ${r.color}` : 'bg-emerald-900/50'
+                                    }`}>
+                                      <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-300' : 'text-emerald-400/40'}`} />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <div className={`text-xs font-semibold ${isActive ? 'text-white' : 'text-emerald-200/60'}`}>{r.label}</div>
+                                      <div className={`text-[10px] ${isActive ? 'text-emerald-100/60' : 'text-emerald-300/30'}`}>{r.desc}</div>
+                                    </div>
+                                    {isActive && (
+                                      <motion.div
+                                        layoutId="roleCheck"
+                                        className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-400"
+                                      />
+                                    )}
+                                  </motion.button>
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
 
                       {/* Submit button */}
                       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
