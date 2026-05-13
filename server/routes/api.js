@@ -23,7 +23,7 @@ router.post('/auth/social-login', async (req, res) => {
     if (!existing.empty) {
       // Return existing user
       const user = { id: existing.docs[0].id, _id: existing.docs[0].id, ...existing.docs[0].data() };
-      const { password: _, ...safe } = user as any;
+      const { password: _, ...safe } = user;
       return res.json(safe);
     }
 
