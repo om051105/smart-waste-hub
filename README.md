@@ -32,7 +32,7 @@ A modern, comprehensive web platform for efficient and intelligent waste managem
    ```bash
    npm install
    ```
-
+hello
 3. **Start the development server**
    ```bash
    npm run dev
