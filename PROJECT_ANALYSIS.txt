@@ -1,0 +1,580 @@
+================================================================================
+  SMART WASTE HUB — FULL PROJECT ANALYSIS
+  Generated: 2026-05-14
+  Author: Antigravity AI (Deepmind)
+================================================================================
+
+================================================================================
+1. PROJECT OVERVIEW
+================================================================================
+
+Name        : Smart Waste Hub (WasteWise+)
+GitHub      : https://github.com/om051105/smart-waste-hub
+Live URL    : https://om051105.github.io/smart-waste-hub/
+Purpose     : An AI-powered smart waste governance platform that connects
+              citizens, waste workers, Green Champions, and administrators
+              through role-based dashboards, complaint tracking, AI waste
+              detection, gamified rewards, and real-time analytics.
+
+================================================================================
+2. TECH STACK
+================================================================================
+
+FRONTEND:
+  - React 18 + TypeScript
+  - Vite (build tool / dev server)
+  - Tailwind CSS v3 + shadcn/ui (48 pre-built UI components)
+  - React Router v6 (BrowserRouter, protected routes)
+  - @tanstack/react-query v5 (data fetching, caching, polling)
+  - Framer Motion (animations)
+  - Recharts (bar, pie, line charts)
+  - Lucide React (icons)
+  - TensorFlow.js + WebGL backend (in-browser AI model inference)
+
+BACKEND:
+  - Node.js + Express.js (REST API server)
+  - Firebase Admin SDK (Firestore as primary database)
+  - Google Firebase Client SDK (browser-side Google/Phone auth)
+  - CORS enabled for all origins
+  - Deployed as a Vercel Serverless Function (api/index.js)
+
+DATABASE:
+  - Firebase Firestore (NoSQL document database)
+  - Collections: users, complaints, collections, facilities, ai_scans, datasets
+
+DEPLOYMENT:
+  - Frontend: Vercel (static hosting + SPA rewrite rules)
+  - Backend: Vercel Serverless Function (api/index.js, max 30s duration)
+  - CI/CD: GitHub Actions + GitHub Pages (legacy, now using Vercel)
+
+AI MODEL:
+  - Architecture: EfficientNetV2-S (22M parameters)
+  - Training: TensorFlow/Keras on Google Colab T4 GPU (6-8 hours)
+  - Dataset: ~70,000 images from 5 Kaggle datasets
+  - Inference: TensorFlow.js in browser (offline capable)
+  - Fallback: Demo/simulation mode if model file not found
+
+================================================================================
+3. FOLDER STRUCTURE
+================================================================================
+
+smart-waste-hub/
+├── src/                        — React frontend source
+│   ├── main.tsx                — App entry point
+│   ├── App.tsx                 — Router + route definitions
+│   ├── App.css / index.css     — Global styles
+│   ├── vite-env.d.ts           — Vite type declarations
+│   │
+│   ├── pages/                  — All page-level components (18 files)
+│   │   ├── LandingPage.tsx     — Public homepage (44KB, very large)
+│   │   ├── LoginPage.tsx       — Full login UI (24KB)
+│   │   ├── AuthPage.tsx        — Simpler auth page (sign in / sign up)
+│   │   ├── DashboardPage.tsx   — Role router → dispatches to correct dashboard
+│   │   ├── CitizenDashboard.tsx
+│   │   ├── AdminDashboard.tsx
+│   │   ├── WorkerDashboard.tsx
+│   │   ├── ChampionDashboard.tsx
+│   │   ├── AIDetectPage.tsx    — TF.js waste classifier (camera + upload)
+│   │   ├── ComplaintsPage.tsx  — Submit + manage complaints
+│   │   ├── RewardsPage.tsx     — Badges, leaderboard, compliance score
+│   │   ├── FacilitiesPage.tsx  — Facility locator with map placeholder
+│   │   ├── TrainingPage.tsx    — Training modules + quiz system
+│   │   ├── AnalyticsPage.tsx   — Charts (admin)
+│   │   ├── CollectionsPage.tsx — Waste collection management
+│   │   ├── UsersPage.tsx       — Admin user directory
+│   │   ├── Index.tsx           — Thin redirect shim
+│   │   └── NotFound.tsx        — 404 page
+│   │
+│   ├── components/             — Shared components
+│   │   ├── DashboardLayout.tsx — Sidebar + header shell for all dashboards
+│   │   ├── NavLink.tsx         — Styled router link
+│   │   ├── ProtectedPage.tsx   — Auth guard (redirects if no session)
+│   │   ├── StatCard.tsx        — Reusable KPI card with icon + value
+│   │   └── ui/                 — 49 shadcn/ui primitive components
+│   │       (accordion, alert, avatar, badge, button, card, chart,
+│   │        dialog, dropdown, form, input, label, progress, select,
+│   │        sidebar, table, tabs, textarea, toast, tooltip, etc.)
+│   │
+│   ├── lib/                    — Utility / service layer
+│   │   ├── auth.ts             — Session management (localStorage)
+│   │   ├── api.ts              — All frontend API call functions
+│   │   ├── firebase.ts         — Firebase client SDK init
+│   │   └── utils.ts            — cn() class merge utility
+│   │
+│   └── hooks/                  — Custom React hooks
+│       ├── use-toast.ts        — Toast notification hook
+│       └── use-mobile.tsx      — Mobile breakpoint detector
+│
+├── server/                     — Express backend
+│   ├── index.js                — Server entry, Firebase init, middleware
+│   ├── firebase.js             — Firebase Admin SDK init (server-side)
+│   ├── routes/
+│   │   └── api.js              — ALL API route handlers (429 lines)
+│   ├── models/                 — Mongoose schemas (legacy, not active)
+│   │   ├── User.js
+│   │   ├── Complaint.js
+│   │   ├── WasteCollection.js
+│   │   ├── Facility.js
+│   │   └── Dataset.js
+│   ├── seed-firebase.js        — Seeds Firestore with sample data
+│   ├── seed-users.js           — Seeds user accounts
+│   ├── seed-extra.js           — Extra seeding script
+│   ├── check-users.js          — Debug: lists users in DB
+│   ├── cleanup.js              — Deletes test data
+│   ├── verify.js               — Firebase connection test
+│   ├── test-db.js              — DB connection test
+│   └── package.json            — Server-only dependencies
+│
+├── api/
+│   └── index.js                — Vercel serverless entry (imports server)
+│
+├── public/                     — Static assets
+├── dist/                       — Production build output
+├── training/                   — AI model training scripts
+├── Smart_Waste_Trainer.ipynb   — Google Colab training notebook
+│
+├── package.json                — Root dependencies + scripts
+├── vite.config.ts              — Vite config (proxy: /api → port 5000)
+├── tailwind.config.ts          — Tailwind theme customization
+├── tsconfig.json               — TypeScript config
+├── vercel.json                 — Vercel deployment config
+├── .env.example                — Required environment variables
+└── README.md                   — Project documentation
+
+================================================================================
+4. AUTHENTICATION SYSTEM
+================================================================================
+
+The app uses a DUAL authentication approach:
+
+A) EMAIL/PASSWORD (Primary)
+   - Frontend calls POST /api/auth/login with {email, password}
+   - Backend queries Firestore: users collection where email+password match
+   - On success: user object returned, stored in localStorage under key
+     "wastewise_session"
+   - Passwords stored in PLAIN TEXT in Firestore (⚠️ security concern)
+
+   DEMO BYPASS ACCOUNTS (hardcoded, work even when Firebase is offline):
+     admin@wastewise.com   / admin123   → role: admin
+     citizen@wastewise.com / citizen123 → role: citizen
+     worker@wastewise.com  / worker123  → role: worker
+
+B) SOCIAL LOGIN (Google + Phone OTP) — via Firebase Client SDK
+   - Google: signInWithPopup(auth, googleProvider)
+   - Phone: RecaptchaVerifier + signInWithPhoneNumber
+   - After Firebase auth, frontend calls POST /api/auth/social-login
+     with {uid, name, email, phone, provider}
+   - Backend creates or retrieves user in Firestore
+
+C) REGISTRATION
+   - POST /api/auth/register with {name, email, password, role, area}
+   - Checks for duplicate email
+   - Saves to Firestore users collection
+   - Returns user (without password)
+   - User stored in localStorage session
+
+SESSION MANAGEMENT (src/lib/auth.ts):
+   - getSession()    → reads localStorage → returns User | null
+   - logout()        → removes localStorage key
+   - updateSession() → overwrites localStorage entry
+   - User interface: {_id, id, name, email, role, complianceScore,
+                       rewardPoints, avatar, area, createdAt}
+
+ROUTE PROTECTION:
+   - <ProtectedPage> component wraps protected routes
+   - Reads session; if null → redirects to /login
+   - UserProp helper passes the session user as a prop to child pages
+
+================================================================================
+5. USER ROLES & PERMISSIONS
+================================================================================
+
+4 roles exist, each with a different dashboard and sidebar menu:
+
+CITIZEN
+  Sidebar: Dashboard, AI Detection, Complaints, Training, Rewards, Facilities
+  Dashboard shows: Compliance score, reward points, complaints filed,
+                   training count, compliance trend chart, waste
+                   distribution pie chart, leaderboard
+  Can: Submit complaints, use AI classifier, view facilities, earn rewards
+
+WORKER (Waste Worker)
+  Sidebar: Dashboard, Collections, Report Issue
+  Dashboard shows: Completed/Pending/Missed collection counts, today's
+                   routes list with "Mark Done" button, simulated route map
+  Can: Mark waste collection routes as completed (triggers +20 score)
+
+ADMIN (Administrator)
+  Sidebar: Dashboard, Analytics, Users, Complaints, Facilities
+  Dashboard shows: Total users, open/resolved complaints, compliance rate,
+                   monthly bar chart, waste distribution pie chart,
+                   AI Model Management panel (AutoML), recent complaints table
+  Can: See all users, manage complaints, trigger model retraining,
+       open Colab trainer
+
+CHAMPION (Green Champion)
+  Sidebar: Dashboard, Inspections, Complaints, Facilities
+  Dashboard shows: Area complaints count, verified count, personal score,
+                   pending verification list with Verify button,
+                   inspection report text area
+  Can: Verify/escalate complaints (moves status to in_progress),
+       submit inspection reports
+
+================================================================================
+6. BACKEND API — FULL ROUTE LIST (server/routes/api.js)
+================================================================================
+
+AUTH ROUTES:
+  POST /api/auth/social-login  → upsert user from Google/Phone Firebase auth
+  POST /api/auth/login         → email+password login (with demo bypass)
+  POST /api/auth/register      → create new user account
+
+USER ROUTES:
+  GET  /api/users              → all users ordered by createdAt desc
+  GET  /api/users/leaderboard  → top 10 users by complianceScore desc
+
+COMPLAINT ROUTES:
+  GET  /api/complaints         → all complaints ordered by createdAt desc
+  POST /api/complaints         → create complaint (citizen gets +5 score)
+  PATCH /api/complaints/:id    → update status (in_progress gives +10 score)
+
+WASTE COLLECTION ROUTES:
+  GET  /api/collections        → all collections ordered by date desc
+  PATCH /api/collections/:id   → update status; if 'completed' → calculates
+                                  organic/plastic/metal weight, worker +20 score
+
+FACILITIES:
+  GET  /api/facilities         → all facilities
+
+STATS:
+  GET  /api/stats              → {totalUsers, totalComplaints, pendingComplaints,
+                                   resolvedComplaints, completedCollections,
+                                   totalCollections, complianceRate}
+
+ANALYTICS:
+  GET  /api/analytics          → {monthly: [...], distribution: [...],
+                                   compliance: [...]}
+                                  (computed from completed collections)
+
+AI SCANS:
+  POST /api/ai-scans           → log a scan result to Firestore
+  GET  /api/ai-scans           → latest 100 scans
+
+DATASETS (Model Improvement):
+  POST /api/datasets           → save user feedback/correction
+  GET  /api/datasets/stats     → {count, latest: [...5]}
+
+MODEL:
+  POST /api/model/retrain      → simulated retraining (2.5s delay, returns version)
+
+DEBUG:
+  POST /api/debug/reset-user   → delete user by email from Firestore
+
+HEALTH:
+  GET  /api/health             → {status, db, env, timestamp}
+
+================================================================================
+7. DATABASE SCHEMA (Firestore Collections)
+================================================================================
+
+COLLECTION: users
+  Fields: uid (social), name, email, phone, password, provider,
+          role ('citizen'|'worker'|'admin'|'champion'),
+          complianceScore (Number), rewardPoints (Number),
+          area (String), avatar (String),
+          createdAt, updatedAt
+
+COLLECTION: complaints
+  Fields: userId, userName, location {lat, lng}, description,
+          status ('pending'|'in_progress'|'resolved'),
+          createdAt, updatedAt
+
+COLLECTION: collections
+  Fields: workerId, area, status ('pending'|'completed'|'missed'),
+          date, households, organicWeight, plasticWeight, metalWeight,
+          createdAt, updatedAt
+
+COLLECTION: facilities
+  Fields: name, type ('recycling'|'compost'|'scrap'),
+          lat, lng, address
+
+COLLECTION: ai_scans
+  Fields: userId, userName, imageData, result, confidence, source, uploadedAt
+
+COLLECTION: datasets
+  Fields: label, originalLabel, confidence, imageData, userId, createdAt
+
+NOTE: The server/models/ folder contains Mongoose (MongoDB) schemas.
+These are LEGACY files — the app has migrated to Firestore. These files
+are not actively used by any running code.
+
+================================================================================
+8. AI WASTE CLASSIFIER (src/pages/AIDetectPage.tsx)
+================================================================================
+
+What it does:
+  Classifies waste images into 3 categories:
+    - GREEN_BIN  → Organic/Biodegradable (food scraps, leaves)
+    - BLUE_BIN   → Recyclable (plastic, glass, metal, paper)
+    - RED_BIN    → Hazardous (batteries, chemicals, non-recyclables)
+
+How it works:
+  1. Page loads → dynamically imports @tensorflow/tfjs + WebGL backend
+  2. Tries to load model from /public/tfjs_model/model.json
+  3. If model found → real inference using EfficientNetV2-S
+  4. If model NOT found → Demo mode (random result with fake 82-97% confidence)
+
+Input modes:
+  - File Upload (JPG/PNG up to 10MB)
+  - Live Camera (getUserMedia, environment-facing, 640×480)
+  - Capture photo from camera → analyze
+
+Inference pipeline (real model):
+  img → tf.browser.fromPixels() → resizeBilinear([300,300])
+      → expandDims(0) → cast('float32') → model.predict()
+      → argmax → CLASSES[maxIdx] → confidence %
+
+User Feedback (AutoML loop):
+  After result shown, user can confirm or correct the classification.
+  Correction data is POSTed to /api/datasets for model improvement.
+  Admin can trigger retraining from AdminDashboard.
+
+Model Training:
+  - Notebook: Smart_Waste_Trainer.ipynb (runs on Google Colab)
+  - Direct link to Colab from Admin Dashboard
+  - Dataset: ~70,000 images, 5 Kaggle sources
+  - Output: TF.js model files saved to /public/tfjs_model/
+
+================================================================================
+9. FRONTEND ROUTING (src/App.tsx)
+================================================================================
+
+PUBLIC routes (no auth required):
+  /           → LandingPage
+  /login      → LoginPage
+  /auth       → redirect to /login (alias)
+
+PROTECTED routes (require session in localStorage):
+  /dashboard           → DashboardPage (auto-picks dashboard by role)
+  /ai-detect           → AIDetectPage
+  /complaints          → ComplaintsPage (receives user prop)
+  /training            → TrainingPage
+  /rewards             → RewardsPage (receives user prop)
+  /facilities          → FacilitiesPage
+  /analytics           → AnalyticsPage
+  /collections         → CollectionsPage
+  /inspections         → ChampionDashboard (receives user prop)
+  /users               → UsersPage (admin only, no enforcement)
+  *                    → NotFound (404)
+
+Dashboard role routing (DashboardPage.tsx):
+  citizen  → CitizenDashboard
+  admin    → AdminDashboard
+  worker   → WorkerDashboard
+  champion → ChampionDashboard
+  (unknown role defaults to citizen)
+
+All protected routes are wrapped in <ProtectedPage>, which reads the
+localStorage session. If no session, user is redirected to /auth → /login.
+
+================================================================================
+10. COMPLIANCE SCORING SYSTEM
+================================================================================
+
+How scores change (server-side, automatic):
+  +5  pts → Citizen files a new complaint
+  +10 pts → Complaint moves to 'in_progress'
+  +20 pts → Worker marks a collection as 'completed'
+  -15 pts → Complaint filed AGAINST a citizen (not fully implemented)
+  -30 pts → Repeated violation (not fully implemented)
+
+Score displayed:
+  - In sidebar header (all roles)
+  - In CitizenDashboard as StatCard + Progress bar
+  - In RewardsPage with full breakdown
+  - Badges based on score:
+    >= 80 → "Green Citizen" (Award icon)
+    >= 50 → "On Track" (TrendingUp icon)
+    <  50 → "Needs Attention" (AlertTriangle icon)
+
+Leaderboard:
+  Top 10 users ordered by complianceScore desc from Firestore.
+  Shown in CitizenDashboard and RewardsPage.
+  Current user's row is highlighted.
+
+================================================================================
+11. DEPLOYMENT CONFIGURATION (vercel.json)
+================================================================================
+
+Framework    : Vite
+Build cmd    : npm run build
+Output dir   : dist/
+Install cmd  : npm install && cd server && npm install
+
+Serverless Functions:
+  api/index.js → max duration 30 seconds
+
+Rewrites:
+  /api/(.*)           → /api/index.js  (all API calls go to Express)
+  /(.*)               → /index.html    (SPA catch-all for React Router)
+  (except /assets/, /tfjs_model/, files with extensions)
+
+CORS Headers (on /api/*):
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS
+  Access-Control-Allow-Headers: Content-Type, Authorization
+
+Environment Variables needed (see .env.example):
+  FIREBASE_SERVICE_ACCOUNT → Full Firebase Admin service account JSON string
+
+================================================================================
+12. REAL-TIME DATA POLLING
+================================================================================
+
+All data queries use @tanstack/react-query with refetchInterval.
+POLL_INTERVAL = 5000ms (5 seconds), defined in src/lib/api.ts.
+
+Queries that auto-refresh every 5 seconds:
+  - complaints    (all dashboards)
+  - collections   (worker)
+  - leaderboard   (citizen, rewards)
+  - analytics     (admin, citizen)
+  - admin-stats   (admin)
+
+This means the UI updates automatically without user action. Multiple
+browser tabs will all stay in sync within ~5 seconds.
+
+================================================================================
+13. DASHBOARD LAYOUT (src/components/DashboardLayout.tsx)
+================================================================================
+
+Structure:
+  - Fixed sidebar (desktop) / slide-out drawer (mobile)
+  - Sidebar sections: logo, user info card, navigation menu, logout button
+  - Main area: header (mobile hamburger + compliance score), scrollable content
+
+Mobile behavior:
+  - Sidebar is hidden off-screen by default
+  - Hamburger button in header opens it
+  - Semi-transparent overlay covers content; click to close
+
+Navigation menus are role-specific (defined in roleMenus object):
+  Each role sees ONLY the links relevant to their role.
+
+Logout: clears localStorage session, navigates to /login.
+
+================================================================================
+14. KNOWN ISSUES & LIMITATIONS
+================================================================================
+
+1. PASSWORDS STORED IN PLAIN TEXT
+   Firestore stores raw password strings. No bcrypt/hashing used.
+   This is a major security vulnerability for production.
+
+2. NO ROLE-BASED ROUTE ENFORCEMENT
+   /users route is only "admin" logically, but any logged-in user can
+   navigate there manually. No server-side role check on frontend routes.
+
+3. TRAINING PAGE HAS NO MODULES
+   mockTrainings is set to [] — Training Center shows no courses.
+   The quiz system is built but has no content to display.
+
+4. MONGOOSE MODELS NOT USED
+   server/models/*.js files define MongoDB/Mongoose schemas, but the app
+   uses Firestore. These files are dead code.
+
+5. MAP IS SIMULATED
+   Both FacilitiesPage and WorkerDashboard use a static Google Maps
+   screenshot URL as background image. No real interactive map.
+   Google Maps API key is not configured.
+
+6. AI MODEL MAY NOT BE DEPLOYED
+   If /public/tfjs_model/model.json is missing, the app falls back to
+   demo mode (random results). The model must be manually exported from
+   Colab and placed in the public folder.
+
+7. INSPECTION REPORTS NOT PERSISTED
+   ChampionDashboard's "Submit Inspection Report" only shows a toast
+   notification — it does NOT call any backend API.
+
+8. TRAINING SCORE NOT TRACKED IN BACKEND
+   CitizenDashboard hardcodes trainingsCompleted = 0 with a comment
+   saying backend tracking is not yet implemented.
+
+9. LOGINPAGE AND AUTHPAGE DUPLICATE
+   There are two separate login UI files (LoginPage.tsx = 24KB,
+   AuthPage.tsx = 12KB). The router sends /login to LoginPage and
+   /auth redirects to /login. AuthPage seems to be a refactored version
+   not actively used via routing.
+
+================================================================================
+15. DEVELOPMENT SCRIPTS
+================================================================================
+
+From project root (runs both frontend + backend together):
+  npm run dev       → concurrently runs Vite + server (nodemon)
+
+Individual:
+  npm run server    → cd server && npm run dev (nodemon server/index.js)
+  npm start         → node server/index.js (production server)
+  npm run build     → vite build (creates /dist)
+  npm run preview   → serve built dist locally
+  npm run lint      → eslint .
+  npm run test      → vitest run
+  npm run test:watch→ vitest (watch mode)
+  npm run deploy    → predeploy (build) + gh-pages -d dist
+
+Server runs on: http://localhost:5000
+Frontend Vite dev: http://localhost:8080 (proxies /api → 5000)
+
+================================================================================
+16. KEY DEPENDENCIES SUMMARY
+================================================================================
+
+PRODUCTION:
+  react, react-dom               — UI framework
+  react-router-dom               — Client-side routing
+  @tanstack/react-query          — Server state + data fetching
+  firebase                       — Client-side auth (Google, Phone OTP)
+  framer-motion                  — Animations
+  recharts                       — Charts (bar, pie, line)
+  lucide-react                   — Icon set
+  @tensorflow/tfjs               — AI model inference in browser
+  @tensorflow/tfjs-backend-webgl — GPU-accelerated TF.js
+  express                        — Backend server
+  cors                           — Cross-origin resource sharing
+  dotenv                         — Environment variable loading
+  mongoose                       — (legacy, not actively used)
+  jsonwebtoken                   — (imported but JWT auth not implemented)
+  zod                            — Schema validation (forms)
+  react-hook-form                — Form state management
+  class-variance-authority       — Component variant styling
+  tailwind-merge                 — Merge Tailwind classes safely
+  sonner                         — Toast notifications (alternative)
+
+DEV ONLY:
+  vite, @vitejs/plugin-react-swc — Build + HMR
+  typescript, typescript-eslint  — Type safety + linting
+  tailwindcss, postcss, autoprefixer
+  concurrently                   — Run multiple npm scripts in parallel
+  vitest, @testing-library/react — Unit testing
+  @playwright/test               — E2E testing
+  gh-pages                       — GitHub Pages deployment
+
+================================================================================
+17. ENVIRONMENT VARIABLES
+================================================================================
+
+Required in server/.env (see .env.example):
+  FIREBASE_SERVICE_ACCOUNT  = '{"type":"service_account","project_id":...}'
+    (Full JSON of Firebase Admin service account — must be on ONE LINE)
+
+  NODE_ENV                  = development | production
+  PORT                      = 5000 (default)
+
+The Firebase client config (src/lib/firebase.ts) is hardcoded in the
+source file (public credentials, protected by Firebase Security Rules).
+
+================================================================================
+END OF ANALYSIS
+================================================================================
