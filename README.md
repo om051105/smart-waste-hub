@@ -70,3 +70,4 @@ The model was trained on a massive merged dataset of **~70,000 images** from the
 - **Time**: 6-8 Hours on Google Colab T4 GPU
 
 
+thank you <3
